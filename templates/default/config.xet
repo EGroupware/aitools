@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE overlay PUBLIC "-//EGroupware GmbH//eTemplate 2.0//EN" "https://www.egroupware.org/etemplate2.0.dtd">
+<overlay>
+	<et2-template id="aitools.config" template="" lang="" group="0" version="1.0" onload="app.aitools.configModelChanged">
+		<grid width="100%" class="admin-config egwGridView_grid">
+			<columns>
+				<column width="50%"/>
+				<column/>
+			</columns>
+			<rows>
+				<row>
+					<et2-description value="AI Service Configuration" span="all" class="subHeader"></et2-description>
+				</row>
+				<row>
+					<et2-description value="AI Model Provider" label="%s:"></et2-description>
+					<et2-vbox>
+						<et2-select id="newsettings[ai_model]" onchange="app.aitools.configModelChanged"></et2-select>
+						<et2-textbox id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
+					</et2-vbox>
+				</row>
+				<row>
+					<et2-description value="AI API URL" label="%s:"></et2-description>
+					<et2-textbox id="newsettings[ai_api_url]" placeholder="Enter custom API URL"></et2-textbox>
+				</row>
+				<row>
+					<et2-description value="AI API Key" label="%s:"></et2-description>
+					<et2-password id="newsettings[ai_api_key]" placeholder="Enter your API key" required="true" autocomplete="new-password"></et2-password>
+				</row>
+			</rows>
+		</grid>
+	</et2-template>
+</overlay>
