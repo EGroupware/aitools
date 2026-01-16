@@ -1,27 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="chatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0C5AA6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1976D2;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Chat bubble background -->
-  <rect x="3" y="6" width="22" height="16" rx="8" ry="8" fill="url(#chatGradient)" stroke="#0C5AA6" stroke-width="1"/>
-  
-  <!-- Chat bubble tail -->
-  <polygon points="8,22 12,26 16,22" fill="url(#chatGradient)" stroke="#0C5AA6" stroke-width="1"/>
-  
-  <!-- AI brain/circuit pattern -->
-  <circle cx="10" cy="12" r="2" fill="white" opacity="0.9"/>
-  <circle cx="16" cy="12" r="2" fill="white" opacity="0.9"/>
-  <circle cx="22" cy="12" r="2" fill="white" opacity="0.9"/>
-  
-  <!-- Connection lines -->
-  <line x1="12" y1="12" x2="14" y2="12" stroke="white" stroke-width="1.5" opacity="0.7"/>
-  <line x1="18" y1="12" x2="20" y2="12" stroke="white" stroke-width="1.5" opacity="0.7"/>
-  
-  <!-- AI symbol -->
-  <text x="16" y="19" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="white">AI</text>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 15.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Ebene_1"
+   x="0px"
+   y="0px"
+   width="24px"
+   height="24px"
+   viewBox="0 0 52.235 52.235"
+   enable-background="new 0 0 52.235 52.235"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+
+<path
+   fill="#303333"
+   d="m 44.609098,7.6741616 c -10.186,-10.212 -26.720001,-10.237 -36.9340005,-0.053 -10.214,10.1850004 -10.238,26.7230004 -0.056,36.9370004 10.1859995,10.215 26.7280005,10.236 36.9370005,0.051 10.214,-10.184 10.24,-26.718 0.053,-36.9350004 z"
+   id="path1"
+   style="fill:#2a7fff;fill-opacity:1" /><path
+   d="m 42.998608,19.043391 c -0.750587,-0.01202 -1.475021,0.27557 -2.012901,0.799221 l -1.018474,0.98311 6.891675,7.115174 1.01423,-0.984526 c 1.125981,-1.089201 1.155686,-2.87436 0.06648,-4.000339 l -2.954985,-3.049763 c -0.521001,-0.54101 -1.236435,-0.851624 -1.987439,-0.862875 z m -4.045605,2.765442 -10.549691,10.217276 -2.03412,1.966221 1.95349,2.018558 0.01414,0.01556 2.953575,3.04835 1.966221,2.032703 2.034117,-1.966221 10.552523,-10.217274 z m -15.122923,14.646223 -2.652277,9.459081 9.539708,-2.348149 z"
+   fill="#660033"
+   id="path1-39"
+   style="fill:#ffffff;stroke-width:1.41455"/><path
+   id="rect1"
+   style="opacity:1;fill:#ffffff;stroke-width:0;stroke-linejoin:round"
+   d="M 14.413756,12.949708 A 13.632117,13.632117 0 0 1 1.8323691,25.892111 13.632117,13.632117 0 0 1 14.425038,38.604366 h 0.02933 a 13.632117,13.632117 0 0 1 12.504676,-12.67841 v -0.02031 A 13.632117,13.632117 0 0 1 14.434063,12.949708 Z" /><path
+   id="rect1-2"
+   style="fill:#ffffff;stroke-width:0;stroke-linejoin:round"
+   d="m 28.075899,3.1356602 a 10.273809,10.273809 0 0 1 -9.48193,9.7540068 10.273809,10.273809 0 0 1 9.490432,9.580558 h 0.02211 a 10.273809,10.273809 0 0 1 9.424113,-9.55505 v -0.0153 A 10.273809,10.273809 0 0 1 28.091208,3.135659 Z" /></svg>

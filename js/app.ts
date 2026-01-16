@@ -18,7 +18,7 @@ import {et2_htmlarea} from "../../api/js/etemplate/et2_widget_htmlarea";
 /**
  * UI for EGroupware AI Assistant application
  */
-class AIToolsApp extends EgwApp
+export class AIToolsApp extends EgwApp
 {
 	/**
 	 * AI model changed
@@ -64,22 +64,22 @@ class AIToolsApp extends EgwApp
 		return [
 			{
 				id: 'aiassist.summarize',
-				label: 'Summarize text',
+				label: this.egw.lang('Summarize text'),
 				action: () => this.handleTextboxPrompt('aiassist.summarize', widget)
 			},
 			{
 				id: 'aiassist.formal',
-				label: 'Make more formal',
+				label: this.egw.lang('Make more formal'),
 				action: () => this.handleTextboxPrompt('aiassist.formal', widget)
 			},
 			{
 				id: 'aiassist.grammar',
-				label: 'Fix grammar & spelling',
+				label: this.egw.lang('Fix grammar & spelling'),
 				action: () => this.handleTextboxPrompt('aiassist.grammar', widget)
 			},
 			{
 				id: 'aiassist.concise',
-				label: 'Make concise',
+				label: this.egw.lang('Make concise'),
 				action: () => this.handleTextboxPrompt('aiassist.concise', widget)
 			}
 		];
@@ -99,99 +99,99 @@ class AIToolsApp extends EgwApp
 		return [
 			{
 				type: 'menuitem',
-				text: 'Summarize text',
+				text: this.egw.lang('Summarize text'),
 				onAction: (action) => this.handleTextboxPrompt('aiassist.summarize', widget)
 			},
 			{
 				type: 'menuitem',
-				text: 'Make more formal',
+				text: this.egw.lang('Make more formal'),
 				onAction: (action) => this.handleTextboxPrompt('aiassist.formal', widget)
 			},
 			{
 				type: 'menuitem',
-				text: 'Make more casual',
+				text: this.egw.lang('Make more casual'),
 				onAction: (action) => this.handleTextboxPrompt('aiassist.casual', widget)
 			},
 			{
 				type: 'menuitem',
-				text: 'Fix grammar & spelling',
+				text: this.egw.lang('Fix grammar & spelling'),
 				onAction: (action) => this.handleTextboxPrompt('aiassist.grammar', widget)
 			},
 			{
 				type: 'menuitem',
-				text: 'Make concise',
+				text: this.egw.lang('Make concise'),
 				onAction: (action) => this.handleTextboxPrompt('aiassist.concise', widget)
 			},
 			{
 				type: 'nestedmenuitem',
-				text: 'Translate',
+				text: this.egw.lang('Translate'),
 				getSubmenuItems: () =>
 				{
 					// This should come from getInstalledLanguages or \Translation::list_langs()
 					return [
 						{
 							type: 'menuitem',
-							text: 'English',
+							text: this.egw.lang('English'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-en', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'German',
+							text: this.egw.lang('German'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-de', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'French',
+							text: this.egw.lang('French'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-fr', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Spanish',
+							text: this.egw.lang('Spanish'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-es', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Italian',
+							text: this.egw.lang('Italian'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-it', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Portuguese',
+							text: this.egw.lang('Portuguese'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-pt', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Dutch',
+							text: this.egw.lang('Dutch'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-nl', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Russian',
+							text: this.egw.lang('Russian'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-ru', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Chinese',
+							text: this.egw.lang('Chinese'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-zh', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Japanese',
+							text: this.egw.lang('Japanese'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-ja', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Korean',
+							text: this.egw.lang('Korean'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-ko', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Arabic',
+							text: this.egw.lang('Arabic'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-ar', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Persian',
+							text: this.egw.lang('Persian'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.translate-fa', widget)}
 						}
 					];
@@ -199,23 +199,23 @@ class AIToolsApp extends EgwApp
 			},
 			{
 				type: 'nestedmenuitem',
-				text: 'Generate',
+				text: this.egw.lang('Generate'),
 				getSubmenuItems: () =>
 				{
 					return [
 						{
 							type: 'menuitem',
-							text: 'Professional reply',
+							text: this.egw.lang('Professional reply'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.generate_reply', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Meeting follow-up',
+							text: this.egw.lang('Meeting follow-up'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.meeting_followup', widget)}
 						},
 						{
 							type: 'menuitem',
-							text: 'Thank you note',
+							text: this.egw.lang('Thank you note'),
 							onAction: () => {this.handleTextboxPrompt('aiassist.thank_you', widget)}
 						}
 					];
@@ -261,39 +261,39 @@ class AIToolsApp extends EgwApp
 	getLoadingMessage(promptID: string): string
 	{
 		const loadingMessages = {
-			'aiassist.summarize': 'Summarizing your text...',
-			'aiassist.formal': 'Making text more formal...',
-			'aiassist.casual': 'Making text more casual...',
-			'aiassist.grammar': 'Checking grammar and spelling...',
-			'aiassist.concise': 'Making text more concise...',
-			'aiassist.generate_reply': 'Generating professional reply...',
-			'aiassist.meeting_followup': 'Creating meeting follow-up...',
-			'aiassist.thank_you': 'Composing thank you note...'
+			'aiassist.summarize': this.egw.lang('Summarizing your text...'),
+			'aiassist.formal': this.egw.lang('Making text more formal...'),
+			'aiassist.casual': this.egw.lang('Making text more casual...'),
+			'aiassist.grammar': this.egw.lang('Checking grammar and spelling...'),
+			'aiassist.concise': this.egw.lang('Making text more concise...'),
+			'aiassist.generate_reply': this.egw.lang('Generating professional reply...'),
+			'aiassist.meeting_followup': this.egw.lang('Creating meeting follow-up...'),
+			'aiassist.thank_you': this.egw.lang('Composing thank you note...')
 		};
 
 		// Handle translation prompts
 		if (promptID.startsWith('aiassist.translate-')) {
 			const langCode = promptID.split('-')[1];
 			const langNames = {
-				'en': 'English',
-				'de': 'German',
-				'fr': 'French',
-				'es': 'Spanish',
-				'it': 'Italian',
-				'pt': 'Portuguese',
-				'nl': 'Dutch',
-				'ru': 'Russian',
-				'zh': 'Chinese',
-				'ja': 'Japanese',
-				'ko': 'Korean',
-				'ar': 'Arabic',
-				'fa': 'Persian'
+				'en': this.egw.lang('English'),
+				'de': this.egw.lang('German'),
+				'fr': this.egw.lang('French'),
+				'es': this.egw.lang('Spanish'),
+				'it': this.egw.lang('Italian'),
+				'pt': this.egw.lang('Portuguese'),
+				'nl': this.egw.lang('Dutch'),
+				'ru': this.egw.lang('Russian'),
+				'zh': this.egw.lang('Chinese'),
+				'ja': this.egw.lang('Japanese'),
+				'ko': this.egw.lang('Korean'),
+				'ar': this.egw.lang('Arabic'),
+				'fa': this.egw.lang('Persian')
 			};
 			const langName = langNames[langCode] || langCode.toUpperCase();
-			return `🌐 Translating to ${langName}...`;
+			return this.egw.lang('Translating to %1...', langName);
 		}
 
-		return loadingMessages[promptID] || '🤖 AI is processing...';
+		return loadingMessages[promptID] || this.egw.lang('AI Tools are processing...');
 	}
 
 	/**
@@ -304,7 +304,7 @@ class AIToolsApp extends EgwApp
 		if (response.error) {
 			// Restore original content on error
 			widget.set_value(originalValue);
-			egw.message('AI processing failed: ' + response.error, 'error');
+			egw.message(this.egw.lang('AI processing failed') + ': ' + response.error, 'error');
 			return;
 		}
 
@@ -313,11 +313,11 @@ class AIToolsApp extends EgwApp
 			widget.set_value(response.result);
 
 			// Show success message
-			egw.message('Text processed successfully', 'success');
+			egw.message(this.egw.lang('Text processed successfully'), 'success');
 		} else {
 			// Restore original content if no result
 			widget.set_value(originalValue);
-			egw.message('No result received from AI', 'warning');
+			egw.message(this.egw.lang('No result received from AI'), 'warning');
 		}
 	}
 }

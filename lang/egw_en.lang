@@ -1,1 +1,34 @@
+ai api key	aitools	en	AI API Key
+ai api url	aitools	en	AI API URL
+ai model provider	aitools	en	AI Model Provider
+ai processing failed	aitools	en	AI processing failed
+ai service configuration	aitools	en	AI Service Configuration
+ai tools are processing...	aitools	en	AI Tools are processing...
 aitools	common	en	AI Tools
+checking grammar and spelling...	aitools	en	Checking grammar and spelling...
+composing thank you note...	aitools	en	Composing thank you note...
+creating meeting follow-up...	aitools	en	Creating meeting follow-up...
+enter custom api url	aitools	en	Enter custom API URL
+enter model name	aitools	en	Enter model name
+enter your api key	aitools	en	Enter your API key
+fix grammar & spelling	aitools	en	Fix grammar & spelling
+generate	aitools	en	Generate
+generate a subject	aitools	en	Generate a subject
+generating professional reply...	aitools	en	Generating professional reply...
+make concise	aitools	en	Make concise
+make more casual	aitools	en	Make more casual
+make more formal	aitools	en	Make more formal
+making text more casual...	aitools	en	Making text more casual...
+making text more concise...	aitools	en	Making text more concise...
+making text more formal...	aitools	en	Making text more formal...
+maximum number of tokens	aitools	en	Maximum number of tokens
+meeting follow-up	aitools	en	Meeting follow-up
+no result received from ai	aitools	en	No result received from AI
+processing stops without result(!), if this number of tokens is reached.	aitools	en	Processing stops without result(!), if this number of tokens is reached.
+professional reply	aitools	en	Professional reply
+summarize text	aitools	en	Summarize text
+summarizing your text...	aitools	en	Summarizing your text...
+text processed successfully	aitools	en	Text processed successfully
+thank you note	aitools	en	Thank you note
+translate	aitools	en	Translate
+translating to %1...	aitools	en	Translating to %1...
