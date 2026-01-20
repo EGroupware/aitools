@@ -110,12 +110,12 @@ class Bo
 	{
 		$config = Api\Config::read(self::APP);
 		// splitt off provider prefix
-		[$provider, $model] = explode(':', $config['ai_model'], 2);
+		[$provider, $model] = explode(':', $config['ai_model'], 2)+[null, null];
 
 		return [
 			'api_url' => $config['ai_api_url'] ?? Hooks::getProviderUrlMapping()[$provider],
 			'api_key' => trim($config['ai_api_key'] ?? ''),
-			'model'   => $model,
+			'model'   => $model ?? $config['ai_custom_model'] ?? null,
 			'provider' => $provider,
 			'max_tokens' => $config['ai_max_tokens'] ?? null,
 		];
