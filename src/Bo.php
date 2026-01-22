@@ -136,10 +136,12 @@ Your task will be specified before the content block.
 	{
 		$prompts = [];
 		$template = 'Translate this text to {$lang}.';
-		
-		// Get user's preferred translation languages from preferences
+
+		// Get user's preferred translation languages from preferences, always include user's language
 		$pref_langs = $GLOBALS['egw_info']['user']['preferences']['aitools']['languages'] ?? '';
-		$lang_codes = array_filter(explode(',', $pref_langs));
+		$lang_codes = array_filter(
+			array_merge([$GLOBALS['egw_info']['user']['preferences']['common']['lang'] ?? "en"], explode(',', $pref_langs))
+		);
 		
 		// If no preferences set, use a small default set
 		if (empty($lang_codes))
