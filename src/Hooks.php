@@ -153,7 +153,8 @@ class Hooks
 				'name'       => 'languages',
 				'type'       => 'et2-select-lang',
 				'label'      => "Translation languages",
-				'attributes' => ['search' => true, 'multiple' => true]
+				'attributes' => ['search' => true, 'multiple' => true],
+				'default'    => 'en,de,fr,it,es-es',
 			]
 		];
 	}
