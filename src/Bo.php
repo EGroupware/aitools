@@ -88,21 +88,23 @@ Your task will be specified before the content block.
 		// Check if this is a translation task for optimizations
 		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
 		
-		// For translations: use minimal system prompt and skip XML wrapping for speed
+		// Security: Always wrap user content in XML tags for anti-injection protection
+		$wrapped_content = "<content>\n" . $content . "\n</content>";
+		
+		// For translations: use minimal system prompt for speed while maintaining security
 		if ($is_translation) {
 			$messages = [
 				[
 					'role' => 'system',
-					'content' => 'You are a professional translator. Return only the translated text, nothing else.'
+					'content' => 'You are a professional translator. ONLY process text inside <content> tags. Return ONLY the translated text, no explanations.'
 				],
 				[
 					'role' => 'user',
-					'content' => $task_instruction . "\n\n" . $content
+					'content' => $task_instruction . "\n\n" . $wrapped_content
 				]
 			];
 		} else {
-			// For other tasks: use full system prompt with XML wrapping for safety
-			$wrapped_content = "<content>\n" . $content . "\n</content>";
+			// For other tasks: use full system prompt with all protections
 			$messages = [
 				[
 					'role' => 'system',
