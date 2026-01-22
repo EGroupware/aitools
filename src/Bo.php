@@ -85,23 +85,38 @@ Your task will be specified before the content block.
 		// Get task-specific instruction
 		$task_instruction = $prompts[$prompt_id];
 		
-		// Wrap user content in XML tags for explicit separation (anti-injection)
-		$wrapped_content = "<content>\n" . $content . "\n</content>";
+		// Check if this is a translation task for optimizations
+		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
 		
-		// Prepare messages with centralized system prompt
-		$messages = [
-			[
-				'role' => 'system',
-				'content' => self::SYSTEM_PROMPT
-			],
-			[
-				'role' => 'user',
-				'content' => $task_instruction . "\n\n" . $wrapped_content
-			]
-		];
+		// For translations: use minimal system prompt and skip XML wrapping for speed
+		if ($is_translation) {
+			$messages = [
+				[
+					'role' => 'system',
+					'content' => 'You are a professional translator. Return only the translated text, nothing else.'
+				],
+				[
+					'role' => 'user',
+					'content' => $task_instruction . "\n\n" . $content
+				]
+			];
+		} else {
+			// For other tasks: use full system prompt with XML wrapping for safety
+			$wrapped_content = "<content>\n" . $content . "\n</content>";
+			$messages = [
+				[
+					'role' => 'system',
+					'content' => self::SYSTEM_PROMPT
+				],
+				[
+					'role' => 'user',
+					'content' => $task_instruction . "\n\n" . $wrapped_content
+				]
+			];
+		}
 		
-		// Call AI API
-		$response = $this->call_ai_api($api_config, $messages);
+		// Call AI API with task-specific optimizations
+		$response = $this->call_ai_api($api_config, $messages, $prompt_id);
 		
 		// Return just the processed content, not the full response structure
 		return $response['content'] ?? $content;
@@ -135,7 +150,8 @@ Your task will be specified before the content block.
 	protected function get_translation_prompts()
 	{
 		$prompts = [];
-		$template = 'Translate this text to {$lang}.';
+		// Optimized prompt for faster translation - direct and concise
+		$template = 'Translate to {$lang}. Output only the translation.';
 
 		// Get user's preferred translation languages from preferences, always include user's language
 		$pref_langs = $GLOBALS['egw_info']['user']['preferences']['aitools']['languages'] ?? '';
@@ -287,13 +303,18 @@ Your task will be specified before the content block.
 	/**
 	 * Call AI API
 	 */
-	protected function call_ai_api($config, $messages)
+	protected function call_ai_api($config, $messages, $prompt_id = '')
 	{
+		// Optimize parameters based on task type
+		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
+		
 		$data = [
 			'model' => $config['model'],
 			'messages' => $messages,
-			'temperature' => 0.7,
-			'max_tokens' => (int)($config['max_tokens'] ?? 10000),
+			// Translation is deterministic - use low temperature for faster, more consistent results
+			'temperature' => $is_translation ? 0.1 : 0.7,
+			// Translations typically match input length - reduce tokens for faster processing
+			'max_tokens' => $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
 		];
 		
 		// Security: Sanitize API key to prevent HTTP header injection
@@ -311,9 +332,14 @@ Your task will be specified before the content block.
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+		// Translation tasks get longer timeout due to processing complexity
+		curl_setopt($ch, CURLOPT_TIMEOUT, $is_translation ? 90 : 60);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // Connection timeout
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+		// Enable HTTP/1.1 keep-alive for faster subsequent requests
+		curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+		// Disable Expect: 100-continue header for faster POST requests
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers, ['Expect:']));
 		
 		$response = curl_exec($ch);
 		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -333,16 +359,17 @@ Your task will be specified before the content block.
 			}
 			
 			// Security: Log detailed errors but show generic message to users
-			$detailed_error = "AI API request failed with status: $http_code";
-			if ($error_details) {
-				$detailed_error .= " - " . $error_details;
+			// Skip verbose logging for faster error handling
+			if (!$is_translation) {
+				$detailed_error = "AI API request failed with status: $http_code";
+				if ($error_details) {
+					$detailed_error .= " - " . $error_details;
+				}
+				if (isset($config['api_url'])) {
+					$detailed_error .= " (URL: " . $config['api_url'] . ")";
+				}
+				error_log($detailed_error);
 			}
-			if (isset($config['api_url'])) {
-				$detailed_error .= " (URL: " . $config['api_url'] . ")";
-			}
-			
-			// Log detailed error for administrators
-			error_log($detailed_error);
 			
 			// User-friendly messages without exposing internal details
 			$error_message = 'AI service request failed. ';
