@@ -49,6 +49,7 @@ IMPORTANT RULES:
 
 Your task will be specified before the content block.
 ";
+	const PRESERVE_MARKUP = "\n- If the content contains HTML or markup you should use it in the response.  ";
 
 	/**
 	 * Constructor
@@ -63,10 +64,17 @@ Your task will be specified before the content block.
 	 * 
 	 * @param string $prompt_id The predefined prompt ID
 	 * @param string $content The text content to process
-	 * @return string The processed content
+	 * @param array $options options including is_html
+	 * @return array The processed content and additional details
 	 */
-	public function process_predefined_prompt($prompt_id, $content)
+	public function process_predefined_prompt($prompt_id, $content, $options = [])
 	{
+		if(!is_array($options))
+		{
+			$options = ['is_html' => (bool)$options];
+		}
+		$is_html = $options['is_html'] ?? $options['is_markup'] ?? false;
+
 		// Security: Validate content length to prevent abuse
 		if (strlen($content) > self::MAX_CONTENT_LENGTH) {
 			throw new \Exception('Content too large. Maximum size is ' . (self::MAX_CONTENT_LENGTH / 1024) . ' KB.');
@@ -76,6 +84,15 @@ Your task will be specified before the content block.
 		$api_config = $this->get_ai_config();
 		if (empty($api_config['api_key'])) {
 			throw new \Exception('AI API not configured. Please contact your administrator.');
+		}
+
+		// Check if this is a translation task for optimizations
+		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
+		if($is_translation)
+		{
+			[, $target_lang] = explode('-', $prompt_id, 2);
+			$source_lang = $options['source_lang'] ?? null;
+			return $this->translate($content, $target_lang, $source_lang, null, $is_html);
 		}
 		
 		// Define predefined prompts
@@ -88,57 +105,32 @@ Your task will be specified before the content block.
 		
 		// Get task-specific instruction
 		$task_instruction = $prompts[$prompt_id];
-		
-		// Check if this is a translation task for optimizations
-		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
 
-		// check if DeepL is configured and use it
-		if ($is_translation && !empty(Api\Config::read(self::APP)['deepl_api_key']))
+		if($is_html)
 		{
-			[, $target_lang] = explode('-', $prompt_id, 2);
-
-			$response = self::deeplTranslate($content, $target_lang);
+			$task_instruction .= self::PRESERVE_MARKUP;
 		}
-		else
-		{
-			// Security: Always wrap user content in XML tags for anti-injection protection
-			$wrapped_content = "<content>\n" . $content . "\n</content>";
 
-			// For translations: use minimal system prompt for speed while maintaining security
-			if ($is_translation)
-			{
-				$messages = [
-					[
-						'role' => 'system',
-						'content' => 'You are a professional translator. ONLY process text inside <content> tags. Return ONLY the translated text, no explanations.'
-					],
-					[
-						'role' => 'user',
-						'content' => $task_instruction . "\n\n" . $wrapped_content
-					]
-				];
-			}
-			else
-			{
-				// For other tasks: use full system prompt with all protections
-				$messages = [
-					[
-						'role' => 'system',
-						'content' => self::SYSTEM_PROMPT
-					],
-					[
-						'role' => 'user',
-						'content' => $task_instruction . "\n\n" . $wrapped_content
-					]
-				];
-			}
+		// Security: Always wrap user content in XML tags for anti-injection protection
+		$wrapped_content = "<content>\n" . $content . "\n</content>";
 
-			// Call AI API with task-specific optimizations
-			$response = $this->call_ai_api($api_config, $messages, $prompt_id);
+		// For other tasks: use full system prompt with all protections
+		$messages = [
+			[
+				'role'    => 'system',
+				'content' => self::SYSTEM_PROMPT
+			],
+			[
+				'role'    => 'user',
+				'content' => $task_instruction . "\n\n" . $wrapped_content
+			]
+		];
 
-			// Return just the processed content, not the full response structure
-			$response = $response['content'] ?? $content;
-		}
+		// Call AI API with task-specific optimizations
+		$ai_response = $this->call_ai_api($api_config, $messages, $prompt_id);
+
+		// Return just the processed content, not the full response structure
+		$response = $ai_response['content'] ?? $content;
 
 		// either purify html or strip_tags plain-text response
 		// to guard gainst XSS via prompt injection and the like
@@ -150,7 +142,10 @@ Your task will be specified before the content block.
 		{
 			$response = strip_tags($response);
 		}
-		return $response;
+		return [
+			'content' => $response,
+			'usage'   => $ai_response['usage'] ?? null,
+		];
 	}
 	
 	/**
@@ -320,10 +315,11 @@ Your task will be specified before the content block.
 	 * @param string $content html or plain-text to translate
 	 * @param string $target_lang
 	 * @param string|null $source_lang on return source-language
+	 * @param boolean|null $is_html content is HTML/XML/markup, default null: detect from content
 	 * @return string
 	 * @throws DeepLException
 	 */
-	public static function deeplTranslate(string $content, string $target_lang, ?string &$source_lang=null)
+	public static function deeplTranslate(string $content, string $target_lang, ?string &$source_lang = null, ?bool $is_html = null)
 	{
 		switch ($target_lang)
 		{
@@ -337,7 +333,10 @@ Your task will be specified before the content block.
 				$target_lang = 'pt-PT';
 				break;
 		}
-		$is_html = preg_match_all('/<[^>]+>/', $content, $matches) && count($matches[0]) > 3;
+		if($is_html === null)
+		{
+			$is_html = preg_match_all('/<[^>]+>/', $content, $matches) && count($matches[0]) > 3;
+		}
 
 		// plain-text formatting with newlines is NOT preserved :(
 		if (!$is_html)
@@ -349,10 +348,12 @@ Your task will be specified before the content block.
 				]).'</p>';
 		}
 
-		$translation = (string)self::deeplTranslator()->translateText($content, null, $target_lang, [
+		$result = self::deeplTranslator()->translateText($content, $source_lang, $target_lang, [
 			// seems to be not supported in 1.4: 'model_type' => 'prefer_quality_optimized',
 			TranslateTextOptions::PRESERVE_FORMATTING => true,
 		]);
+		$source_lang = $result->detectedSourceLang;
+		$translation = (string)$result;
 
 		if (!$is_html)
 		{
@@ -379,12 +380,26 @@ Your task will be specified before the content block.
 		$params = func_get_args();
 		$action = $params[0] ?? $_REQUEST['action'] ?? '';
 
+		// The content being processed is HTML / XML / markup and needs special handling
+		$is_markup = (bool)($_REQUEST['is_html']) ?? null;
+
 		try {
 			switch ($action)
 			{
 				case 'process_prompt':
 					$prompt_id = $params[1] ?? $_REQUEST['prompt_id'] ?? '';
 					$content = $params[2] ?? $_REQUEST['content'] ?? '';
+					$options = $params[3] ?? [];
+					if(!is_array($options))
+					{
+						$options = [
+							'is_html' => $is_markup
+						];
+					}
+					elseif(!isset($options['is_html']))
+					{
+						$options['is_html'] = $is_markup;
+					}
 
 					// Security: Validate inputs
 					if (empty($prompt_id) || !is_string($prompt_id))
@@ -396,11 +411,21 @@ Your task will be specified before the content block.
 						throw new \Exception('Valid content is required');
 					}
 
-					$result = $this->process_predefined_prompt($prompt_id, $content);
-					Api\Json\Response::get()->data([
+					$result = $this->process_predefined_prompt($prompt_id, $content, $options);
+					$response = [
 						'success' => true,
-						'result' => $result
-					]);
+					];
+					if(is_array($result))
+					{
+						$response['result'] = $result['content'];
+						unset($result['content']);
+						$response += $result;
+					}
+					else
+					{
+						$response['result'] = $result;
+					}
+					Api\Json\Response::get()->data($response);
 					break;
 
 				default:
@@ -533,6 +558,40 @@ Your task will be specified before the content block.
 		];
 	}
 
+	function translate($content, $target_lang, &$source_lang = null, $context = null, $is_html = null)
+	{
+		if(!empty(Api\Config::read(self::APP)['deepl_api_key']))
+		{
+			$content = self::deeplTranslate($content, $target_lang, $source_lang, $is_html);
+		}
+		else
+		{
+			// Security: Always wrap user content in XML tags for anti-injection protection
+			$wrapped_content = "<content>\n" . $content . "\n</content>";
+
+			$messages = [
+				[
+					'role'    => 'system',
+					'content' => 'You are a professional translator. ONLY process text inside <content> tags. Return ONLY the translated text, no explanations.' . PHP_EOL .
+						($is_html ? self::PRESERVE_MARKUP : "")
+				],
+				[
+					'role'    => 'user',
+					'content' => $this->get_translation_prompts()[$target_lang] . "\n\n" . $wrapped_content
+				]
+			];
+			// Call AI API with task-specific optimizations
+			$api_config = $this->get_ai_config();
+			$response = $this->call_ai_api($api_config, $messages, "aiassist.translate-" . $target_lang);
+
+			// Return just the processed content, not the full response structure
+			$content = $response['content'] ?? $content;
+		}
+		return [
+			'content'     => $content,
+			'source_lang' => $source_lang,
+		];
+	}
 
 	/**
 	 * Return a simple, user-friendly status message for an OpenAI response.
