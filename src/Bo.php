@@ -356,12 +356,11 @@ Your task will be specified before the content block.
 
 		if (!$is_html)
 		{
-			$translation = strip_tags(strtr($translation, [
+			$translation = html_entity_decode(strip_tags(strtr($translation, [
 				'</p><p>' => "\n\n",
 				'<br/>' => "\n",
 				'<br>' => "\n",
-				'&lt;' => '<',
-			]));
+			])), ENT_COMPAT, 'UTF-8');
 		}
 
 		return $translation;
