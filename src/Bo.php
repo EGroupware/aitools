@@ -11,6 +11,10 @@
 
 namespace EGroupware\AiTools;
 
+use DeepL\DeepLException;
+use DeepL\Language;
+use DeepL\TranslateTextOptions;
+use DeepL\Translator;
 use EGroupware\Api;
 
 /**
@@ -87,41 +91,66 @@ Your task will be specified before the content block.
 		
 		// Check if this is a translation task for optimizations
 		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
-		
-		// Security: Always wrap user content in XML tags for anti-injection protection
-		$wrapped_content = "<content>\n" . $content . "\n</content>";
-		
-		// For translations: use minimal system prompt for speed while maintaining security
-		if ($is_translation) {
-			$messages = [
-				[
-					'role' => 'system',
-					'content' => 'You are a professional translator. ONLY process text inside <content> tags. Return ONLY the translated text, no explanations.'
-				],
-				[
-					'role' => 'user',
-					'content' => $task_instruction . "\n\n" . $wrapped_content
-				]
-			];
-		} else {
-			// For other tasks: use full system prompt with all protections
-			$messages = [
-				[
-					'role' => 'system',
-					'content' => self::SYSTEM_PROMPT
-				],
-				[
-					'role' => 'user',
-					'content' => $task_instruction . "\n\n" . $wrapped_content
-				]
-			];
+
+		// check if DeepL is configured and use it
+		if ($is_translation && !empty(Api\Config::read(self::APP)['deepl_api_key']))
+		{
+			[, $target_lang] = explode('-', $prompt_id, 2);
+
+			$response = self::deeplTranslate($content, $target_lang);
 		}
-		
-		// Call AI API with task-specific optimizations
-		$response = $this->call_ai_api($api_config, $messages, $prompt_id);
-		
-		// Return just the processed content, not the full response structure
-		return $response['content'] ?? $content;
+		else
+		{
+			// Security: Always wrap user content in XML tags for anti-injection protection
+			$wrapped_content = "<content>\n" . $content . "\n</content>";
+
+			// For translations: use minimal system prompt for speed while maintaining security
+			if ($is_translation)
+			{
+				$messages = [
+					[
+						'role' => 'system',
+						'content' => 'You are a professional translator. ONLY process text inside <content> tags. Return ONLY the translated text, no explanations.'
+					],
+					[
+						'role' => 'user',
+						'content' => $task_instruction . "\n\n" . $wrapped_content
+					]
+				];
+			}
+			else
+			{
+				// For other tasks: use full system prompt with all protections
+				$messages = [
+					[
+						'role' => 'system',
+						'content' => self::SYSTEM_PROMPT
+					],
+					[
+						'role' => 'user',
+						'content' => $task_instruction . "\n\n" . $wrapped_content
+					]
+				];
+			}
+
+			// Call AI API with task-specific optimizations
+			$response = $this->call_ai_api($api_config, $messages, $prompt_id);
+
+			// Return just the processed content, not the full response structure
+			$response = $response['content'] ?? $content;
+		}
+
+		// either purify html or strip_tags plain-text response
+		// to guard gainst XSS via prompt injection and the like
+		if (preg_match_all('/<[^>]+>/', $response, $matches) && count($matches[0]) > 3)
+		{
+			$response = Api\Html\HtmLawed::purify($response);
+		}
+		else
+		{
+			$response = strip_tags($response);
+		}
+		return $response;
 	}
 	
 	/**
@@ -252,6 +281,90 @@ Your task will be specified before the content block.
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * Get DeepL Translator object
+	 *
+	 * @param array|null $config
+	 * @return Translator
+	 * @throws DeepLException
+	 */
+	public static function deeplTranslator(?array $config=null) : Translator
+	{
+		if (!isset($config))
+		{
+			$config = Api\Config::read(self::APP);
+		}
+		return new Translator($config['deepl_api_key'], (empty($config['deepl_api_url']) ? [] :
+			['server_url' => $config['deepl_api_url']])+[
+				'send_platform_info' => false,  // seems to give an error with PHP 8.5 at least :(
+			]);
+	}
+
+	/**
+	 * Test deepl config by querying the available target languages
+	 * @param array|null $config
+	 * @return Language[]
+	 * @throws DeepLException
+	 */
+	public static function deeplTargetLanguages(array $config=null) : array
+	{
+		return self::deeplTranslator($config)->getTargetLanguages();
+	}
+
+	/**
+	 * Translate via DeepL
+	 *
+	 * @param string $content html or plain-text to translate
+	 * @param string $target_lang
+	 * @param string|null $source_lang on return source-language
+	 * @return string
+	 * @throws DeepLException
+	 */
+	public static function deeplTranslate(string $content, string $target_lang, ?string &$source_lang=null)
+	{
+		switch ($target_lang)
+		{
+			case 'en':
+				$target_lang = 'en-GB'; // gives error "en" is deprecated use "en-GB" or "en-US"
+				break;
+			case 'es-es':
+				$target_lang = 'es';    // "es-419" for Latin American
+				break;
+			case 'pt':
+				$target_lang = 'pt-PT';
+				break;
+		}
+		$is_html = preg_match_all('/<[^>]+>/', $content, $matches) && count($matches[0]) > 3;
+
+		// plain-text formatting with newlines is NOT preserved :(
+		if (!$is_html)
+		{
+			$content = '<p>'.strtr($content, [
+					'<' => '&lt;',
+					"\n\n" => '</p><p>',
+					"\n" => '<br/>',
+				]).'</p>';
+		}
+
+		$translation = (string)self::deeplTranslator()->translateText($content, null, $target_lang, [
+			// seems to be not supported in 1.4: 'model_type' => 'prefer_quality_optimized',
+			TranslateTextOptions::PRESERVE_FORMATTING => true,
+		]);
+
+		if (!$is_html)
+		{
+			$translation = strip_tags(strtr($translation, [
+				'</p><p>' => "\n\n",
+				'<br/>' => "\n",
+				'<br>' => "\n",
+				'&lt;' => '<',
+			]));
+		}
+
+		return $translation;
 	}
 
 	/**

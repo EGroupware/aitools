@@ -13,5 +13,6 @@
         }
     ],
     "require": {
+        "deeplcom/deepl-php": "^1.4"
     }
 }

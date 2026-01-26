@@ -33,6 +33,17 @@
 						<et2-description value="Processing stops without result(!), if this number of tokens is reached."></et2-description>
 					</et2-hbox>
 				</row>
+				<row>
+					<et2-description value="deepl.com Configuration" span="all" class="subHeader"></et2-description>
+				</row>
+				<row>
+					<et2-description value="deepl.com API URL" label="%s:"></et2-description>
+					<et2-textbox id="newsettings[deepl_api_url]" placeholder="https://api.deepl.com"></et2-textbox>
+				</row>
+				<row>
+					<et2-description value="deepl.com API Key" label="%s:"></et2-description>
+					<et2-password id="newsettings[deepl_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
+				</row>
 			</rows>
 		</grid>
 	</et2-template>

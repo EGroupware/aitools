@@ -142,6 +142,15 @@ class Hooks
 				return $e->getMessage();
 			}
 		}
+		if (!empty($data['deepl_api_key']))
+		{
+			try {
+				Bo::deeplTargetLanguages(array_filter($data, fn($key) => str_starts_with($key, 'deepl_'), ARRAY_FILTER_USE_KEY));
+			}
+			catch (\Exception $e) {
+				return $e->getMessage();
+			}
+		}
 
 		return null;
 	}
