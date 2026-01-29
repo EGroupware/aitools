@@ -32,7 +32,7 @@ export class AIToolsApp extends EgwApp
 		const model = _ev.type === 'load' ? this.et2.getInputWidgetById('newsettings[ai_model]') : _widget;
 		const custom_model = this.et2.getWidgetById('newsettings[ai_custom_model]');
 		custom_model.hidden = model.value !== 'custom';
-		custom_model.required = model.value === 'custom';
+		custom_model.required = model.value && model.value !== 'custom' && model.value !== 'ollama';
 		const custom_url = this.et2.getWidgetById('newsettings[ai_api_url]');
 		custom_url.required = model.value === 'custom';
 	}

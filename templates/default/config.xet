@@ -14,7 +14,7 @@
 				<row>
 					<et2-description value="AI Model Provider" label="%s:"></et2-description>
 					<et2-vbox>
-						<et2-select id="newsettings[ai_model]" onchange="app.aitools.configModelChanged"></et2-select>
+						<et2-select id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
 						<et2-textbox id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
 					</et2-vbox>
 				</row>
@@ -24,7 +24,7 @@
 				</row>
 				<row>
 					<et2-description value="AI API Key" label="%s:"></et2-description>
-					<et2-password id="newsettings[ai_api_key]" placeholder="Enter your API key" required="true" autocomplete="new-password"></et2-password>
+					<et2-password id="newsettings[ai_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
 				</row>
 				<row>
 					<et2-description value="Maximum number of tokens" label="%s:"></et2-description>
