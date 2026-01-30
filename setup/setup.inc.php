@@ -37,5 +37,5 @@ $setup_info['aitools']['hooks']['settings'] = 'EGroupware\AiTools\Hooks::prefere
 /* Dependencies for this app to work */
 $setup_info['aitools']['depends'][] = array(
 	 'appname' => 'api',
-	 'versions' => Array('23.1')
+	 'versions' => Array('26.1')
 );
