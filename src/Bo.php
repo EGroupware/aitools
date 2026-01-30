@@ -306,6 +306,7 @@ Your task will be specified before the content block.
 	 */
 	public static function deeplTargetLanguages(array $config=null) : array
 	{
+		if (empty($config['deepl_api_key'])) return [];
 		return self::deeplTranslator($config)->getTargetLanguages();
 	}
 
