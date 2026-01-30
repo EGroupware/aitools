@@ -24,6 +24,7 @@ $setup_info['aitools']['maintainer'] = array(
 	'name'  => 'Ralf Becker',
 	'email' => 'rb@egroupware.org',
 );
+$setup_info['aitools']['license']  = 'GPL';
 $setup_info['aitools']['description'] = 'AI tools for EGroupware';
 
 /* The hooks this app includes, needed for hooks registration */
