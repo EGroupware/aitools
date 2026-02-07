@@ -1,11 +1,19 @@
+ai service configuration	aitools	ja	AIサービス設定
 aitools	common	ja	AIツール
+deepl.com configuration	aitools	ja	DeepL.com設定
 fix grammar & spelling	aitools	ja	文法・スペル修正
 generate	aitools	ja	生成
 generate a subject	aitools	ja	件名を生成
+insert after	aitools	ja	挿入位置（後）
+insert before	aitools	ja	挿入位置（前）
 make concise	aitools	ja	簡潔にする
 make more casual	aitools	ja	カジュアルにする
 make more formal	aitools	ja	フォーマルにする
+maximum number of tokens	aitools	ja	最大トークン数
 meeting follow-up	aitools	ja	会議のフォローアップ
+processing stops without result(!), if this number of tokens is reached.	aitools	ja	このトークン数に達した場合、処理は結果なしで停止します(!)。
 professional reply	aitools	ja	プロフェッショナルな返信
 summarize text	aitools	ja	テキストを要約
 thank you note	aitools	ja	お礼状
+translate	aitools	ja	翻訳
+translation languages	aitools	ja	翻訳言語

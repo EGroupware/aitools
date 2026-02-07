@@ -1,11 +1,19 @@
+ai service configuration	aitools	pt-br	Configuração do serviço de AI
 aitools	common	pt-br	Ferramentas de IA
+deepl.com configuration	aitools	pt-br	Configuração do DeepL.com
 fix grammar & spelling	aitools	pt-br	Corrigir gramática e ortografia
 generate	aitools	pt-br	Gerar
 generate a subject	aitools	pt-br	Gerar um assunto
+insert after	aitools	pt-br	Inserir depois
+insert before	aitools	pt-br	Inserir antes
 make concise	aitools	pt-br	Tornar conciso
 make more casual	aitools	pt-br	Tornar mais informal
 make more formal	aitools	pt-br	Tornar mais formal
+maximum number of tokens	aitools	pt-br	Número máximo de tokens
 meeting follow-up	aitools	pt-br	Acompanhamento da reunião
+processing stops without result(!), if this number of tokens is reached.	aitools	pt-br	O processamento é interrompido sem resultado(!), se esse número de tokens for atingido.
 professional reply	aitools	pt-br	Resposta profissional
 summarize text	aitools	pt-br	Resumir texto
 thank you note	aitools	pt-br	Nota de agradecimento
+translate	aitools	pt-br	Traduzir
+translation languages	aitools	pt-br	Idiomas de tradução

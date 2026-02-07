@@ -1,11 +1,19 @@
+ai service configuration	aitools	sk	Konfigurácia služby umelej inteligencie
 aitools	common	sk	Nástroje umelej inteligencie
+deepl.com configuration	aitools	sk	Konfigurácia DeepL.com
 fix grammar & spelling	aitools	sk	Opravte gramatiku a pravopis
 generate	aitools	sk	Vygenerujte
 generate a subject	aitools	sk	Vygenerujte predmet
+insert after	aitools	sk	Vložiť za
+insert before	aitools	sk	Vložiť pred
 make concise	aitools	sk	Skráťte
 make more casual	aitools	sk	Urobte neformálnejšie
 make more formal	aitools	sk	Urobte formálnejšie
+maximum number of tokens	aitools	sk	Maximálny počet tokenov
 meeting follow-up	aitools	sk	Nadviazanie na stretnutie
+processing stops without result(!), if this number of tokens is reached.	aitools	sk	Spracovanie sa zastaví bez výsledku (!), ak sa dosiahne tento počet tokenov.
 professional reply	aitools	sk	Profesionálna odpoveď
 summarize text	aitools	sk	Zhrňte text
 thank you note	aitools	sk	Ďakovný list
+translate	aitools	sk	Preložiť
+translation languages	aitools	sk	Prekladové jazyky

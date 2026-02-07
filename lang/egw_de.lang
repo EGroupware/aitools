@@ -1,11 +1,19 @@
+ai service configuration	aitools	de	KI Service-Konfiguration
 aitools	common	de	AI Tools
+deepl.com configuration	aitools	de	DeepL.com - Konfiguration
 fix grammar & spelling	aitools	de	Grammatik & Rechtschreibung korrigieren
 generate	aitools	de	Generiere
 generate a subject	aitools	de	Betreff generieren
+insert after	aitools	de	Dahinter einfügen
+insert before	aitools	de	Davor einfügen
 make concise	aitools	de	Prägnant formulieren
 make more casual	aitools	de	Lockerer formulieren
 make more formal	aitools	de	Formeller formulieren
+maximum number of tokens	aitools	de	Maximale Anzahl von Tokens
 meeting follow-up	aitools	de	Nachbereitung des Meetings
+processing stops without result(!), if this number of tokens is reached.	aitools	de	Die Verarbeitung wird ohne Ergebnis beendet (!), wenn diese Anzahl an Tokens erreicht ist.
 professional reply	aitools	de	Professionelle Antwort
 summarize text	aitools	de	Text zusammenfassen
 thank you note	aitools	de	Dankschreiben
+translate	aitools	de	Übersetzen
+translation languages	aitools	de	Übersetzungssprachen

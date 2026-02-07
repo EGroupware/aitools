@@ -1,11 +1,19 @@
+ai service configuration	aitools	cs	Konfigurace služby AI
 aitools	common	cs	Nástroje AI
+deepl.com configuration	aitools	cs	Konfigurace DeepL.com
 fix grammar & spelling	aitools	cs	Opravit gramatiku a pravopis
 generate	aitools	cs	Generovat
 generate a subject	aitools	cs	Generovat předmět
+insert after	aitools	cs	Vložit za
+insert before	aitools	cs	Vložit před
 make concise	aitools	cs	Zkrátit
 make more casual	aitools	cs	Zjednodušit
 make more formal	aitools	cs	Zformulovat formálněji
+maximum number of tokens	aitools	cs	Maximální počet tokenů
 meeting follow-up	aitools	cs	Následná schůzka
+processing stops without result(!), if this number of tokens is reached.	aitools	cs	Pokud je tento počet tokenů dosažen, zpracování se zastaví bez výsledku (!).
 professional reply	aitools	cs	Profesionální odpověď
 summarize text	aitools	cs	Shrnout text
 thank you note	aitools	cs	Děkovný dopis
+translate	aitools	cs	Přeložit
+translation languages	aitools	cs	Překladové jazyky

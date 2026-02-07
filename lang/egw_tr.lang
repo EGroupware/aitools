@@ -1,11 +1,19 @@
+ai service configuration	aitools	tr	AI Hizmeti Yapılandırması
 aitools	common	tr	AI Araçları
+deepl.com configuration	aitools	tr	DeepL.com Yapılandırması
 fix grammar & spelling	aitools	tr	Dilbilgisi ve imla hatalarını düzelt
 generate	aitools	tr	Oluştur
 generate a subject	aitools	tr	Konu oluştur
+insert after	aitools	tr	Sonra ekle
+insert before	aitools	tr	Önce ekle
 make concise	aitools	tr	Kısa ve öz hale getir
 make more casual	aitools	tr	Daha samimi hale getir
 make more formal	aitools	tr	Daha resmi hale getir
+maximum number of tokens	aitools	tr	Maksimum token sayısı
 meeting follow-up	aitools	tr	Toplantı takibi
+processing stops without result(!), if this number of tokens is reached.	aitools	tr	Bu token sayısına ulaşıldığında işlem sonuç alınamadan durur(!).
 professional reply	aitools	tr	Profesyonel cevap
 summarize text	aitools	tr	Metni özetle
 thank you note	aitools	tr	Teşekkür notu
+translate	aitools	tr	Çevir
+translation languages	aitools	tr	Çeviri dilleri

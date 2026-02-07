@@ -1,11 +1,19 @@
+ai service configuration	aitools	lt	AI paslaugos konfigūracija
 aitools	common	lt	AI įrankiai
+deepl.com configuration	aitools	lt	DeepL.com konfigūracija
 fix grammar & spelling	aitools	lt	Ištaisyti gramatiką ir rašybą
 generate	aitools	lt	Sukurti
 generate a subject	aitools	lt	Sukurti temą
+insert after	aitools	lt	Įterpti po
+insert before	aitools	lt	Įterpti prieš
 make concise	aitools	lt	Padaryti glaustą
 make more casual	aitools	lt	Padaryti labiau neformalų
 make more formal	aitools	lt	Padaryti labiau formalų
+maximum number of tokens	aitools	lt	Maksimalus žodžių skaičius
 meeting follow-up	aitools	lt	Susitikimo tęsinys
+processing stops without result(!), if this number of tokens is reached.	aitools	lt	Pasiekus šį žodžių skaičių, apdorojimas sustabdomas be rezultato(!).
 professional reply	aitools	lt	Profesionalus atsakymas
 summarize text	aitools	lt	Apibendrinti tekstą
 thank you note	aitools	lt	Padėkos raštas
+translate	aitools	lt	Versti
+translation languages	aitools	lt	Vertimo kalbos

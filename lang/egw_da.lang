@@ -1,11 +1,19 @@
+ai service configuration	aitools	da	Konfiguration af AI-tjeneste
 aitools	common	da	AI-værktøjer
+deepl.com configuration	aitools	da	DeepL.com-konfiguration
 fix grammar & spelling	aitools	da	Rettelse af grammatik og stavning
 generate	aitools	da	Generer
 generate a subject	aitools	da	Generer et emne
+insert after	aitools	da	Indsæt efter
+insert before	aitools	da	Indsæt før
 make concise	aitools	da	Gør det kortfattet
 make more casual	aitools	da	Gør det mere uformelt
 make more formal	aitools	da	Gør det mere formelt
+maximum number of tokens	aitools	da	Maksimalt antal tokens
 meeting follow-up	aitools	da	Opfølgning på møde
+processing stops without result(!), if this number of tokens is reached.	aitools	da	Behandlingen stopper uden resultat(!), hvis dette antal tokens nås.
 professional reply	aitools	da	Professionelt svar
 summarize text	aitools	da	Opsummer tekst
 thank you note	aitools	da	Takkebrev
+translate	aitools	da	Oversæt
+translation languages	aitools	da	Oversættelsessprog

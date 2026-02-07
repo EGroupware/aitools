@@ -1,11 +1,19 @@
+ai service configuration	aitools	el	Διαμόρφωση υπηρεσίας τεχνητής νοημοσύνης
 aitools	common	el	Εργαλεία τεχνητής νοημοσύνης
+deepl.com configuration	aitools	el	Διαμόρφωση DeepL.com
 fix grammar & spelling	aitools	el	Διόρθωση γραμματικής και ορθογραφίας
 generate	aitools	el	Δημιουργία
 generate a subject	aitools	el	Δημιουργία θέματος
+insert after	aitools	el	Εισαγωγή μετά
+insert before	aitools	el	Εισαγωγή πριν
 make concise	aitools	el	Συνοπτική διατύπωση
 make more casual	aitools	el	Πιο ανεπίσημη διατύπωση
 make more formal	aitools	el	Πιο επίσημη διατύπωση
+maximum number of tokens	aitools	el	Μέγιστος αριθμός συμβόλων
 meeting follow-up	aitools	el	Παρακολούθηση συνάντησης
+processing stops without result(!), if this number of tokens is reached.	aitools	el	Η επεξεργασία σταματά χωρίς αποτέλεσμα(!), εάν επιτευχθεί αυτός ο αριθμός συμβόλων.
 professional reply	aitools	el	Επαγγελματική απάντηση
 summarize text	aitools	el	Σύνοψη κειμένου
 thank you note	aitools	el	Ευχαριστήρια επιστολή
+translate	aitools	el	Μετάφραση
+translation languages	aitools	el	Γλώσσες μετάφρασης
