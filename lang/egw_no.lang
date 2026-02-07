@@ -1,11 +1,19 @@
+ai service configuration	aitools	no	AI-tjenestekonfigurasjon
 aitools	common	no	AI-verktøy
+deepl.com configuration	aitools	no	DeepL.com-konfigurasjon
 fix grammar & spelling	aitools	no	Rett grammatikk og staving
 generate	aitools	no	Generer
 generate a subject	aitools	no	Generer et emne
+insert after	aitools	no	Sett inn etter
+insert before	aitools	no	Sett inn før
 make concise	aitools	no	Gjør det kortfattet
 make more casual	aitools	no	Gjør det mer uformelt
 make more formal	aitools	no	Gjør det mer formelt
+maximum number of tokens	aitools	no	Maksimalt antall tokens
 meeting follow-up	aitools	no	Oppfølging av møte
+processing stops without result(!), if this number of tokens is reached.	aitools	no	Behandlingen stopper uten resultat(!), hvis dette antallet tokens nås.
 professional reply	aitools	no	Profesjonelt svar
 summarize text	aitools	no	Oppsummer tekst
 thank you note	aitools	no	Takkebrev
+translate	aitools	no	Oversett
+translation languages	aitools	no	Oversettelsesspråk

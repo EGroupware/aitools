@@ -1,11 +1,19 @@
+ai service configuration	aitools	id	Konfigurasi Layanan AI
 aitools	common	id	Alat AI
+deepl.com configuration	aitools	id	Konfigurasi DeepL.com
 fix grammar & spelling	aitools	id	Perbaiki tata bahasa & ejaan
 generate	aitools	id	Generate
 generate a subject	aitools	id	Generate subjek
+insert after	aitools	id	Sisipkan setelah
+insert before	aitools	id	Sisipkan sebelum
 make concise	aitools	id	Buat lebih ringkas
 make more casual	aitools	id	Buat lebih santai
 make more formal	aitools	id	Buat lebih formal
+maximum number of tokens	aitools	id	Jumlah token maksimum
 meeting follow-up	aitools	id	Tindak lanjut rapat
+processing stops without result(!), if this number of tokens is reached.	aitools	id	Proses berhenti tanpa hasil(!), jika jumlah token ini tercapai.
 professional reply	aitools	id	Balasan profesional
 summarize text	aitools	id	Ringkas teks
 thank you note	aitools	id	Catatan ucapan terima kasih
+translate	aitools	id	Terjemahkan
+translation languages	aitools	id	Bahasa terjemahan

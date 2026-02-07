@@ -1,11 +1,19 @@
+ai service configuration	aitools	zh	AI服务配置
 aitools	common	zh	AI工具
+deepl.com configuration	aitools	zh	DeepL.com配置
 fix grammar & spelling	aitools	zh	修正语法与拼写
 generate	aitools	zh	生成
 generate a subject	aitools	zh	生成主题
+insert after	aitools	zh	插入后
+insert before	aitools	zh	插入前
 make concise	aitools	zh	精简内容
 make more casual	aitools	zh	更口语化
 make more formal	aitools	zh	更正式化
+maximum number of tokens	aitools	zh	最大令牌数
 meeting follow-up	aitools	zh	会议跟进
+processing stops without result(!), if this number of tokens is reached.	aitools	zh	达到此令牌数时处理将停止且不返回结果(!)。
 professional reply	aitools	zh	专业回复
 summarize text	aitools	zh	文本摘要
 thank you note	aitools	zh	感谢信
+translate	aitools	zh	翻译
+translation languages	aitools	zh	翻译语言

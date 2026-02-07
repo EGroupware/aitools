@@ -8,6 +8,7 @@ aitools	common	en	AI Tools
 checking grammar and spelling...	aitools	en	Checking grammar and spelling...
 composing thank you note...	aitools	en	Composing thank you note...
 creating meeting follow-up...	aitools	en	Creating meeting follow-up...
+deepl.com configuration	aitools	en	DeepL.com Configuration
 enter custom api url	aitools	en	Enter custom API URL
 enter model name	aitools	en	Enter model name
 enter your api key	aitools	en	Enter your API key
@@ -15,6 +16,8 @@ fix grammar & spelling	aitools	en	Fix grammar & spelling
 generate	aitools	en	Generate
 generate a subject	aitools	en	Generate a subject
 generating professional reply...	aitools	en	Generating professional reply...
+insert after	aitools	en	Insert after
+insert before	aitools	en	Insert before
 make concise	aitools	en	Make concise
 make more casual	aitools	en	Make more casual
 make more formal	aitools	en	Make more formal
@@ -32,3 +35,4 @@ text processed successfully	aitools	en	Text processed successfully
 thank you note	aitools	en	Thank you note
 translate	aitools	en	Translate
 translating to %1...	aitools	en	Translating to %1...
+translation languages	aitools	en	Translation languages

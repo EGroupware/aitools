@@ -1,11 +1,19 @@
+ai service configuration	aitools	sv	Konfiguration av AI-tjänst
 aitools	common	sv	AI-verktyg
+deepl.com configuration	aitools	sv	DeepL.com-konfiguration
 fix grammar & spelling	aitools	sv	Korrigera grammatik och stavning
 generate	aitools	sv	Generera
 generate a subject	aitools	sv	Generera ett ämne
+insert after	aitools	sv	Infoga efter
+insert before	aitools	sv	Infoga före
 make concise	aitools	sv	Gör det kortfattat
 make more casual	aitools	sv	Gör det mer informellt
 make more formal	aitools	sv	Gör det mer formellt
+maximum number of tokens	aitools	sv	Maximalt antal token
 meeting follow-up	aitools	sv	Uppföljning av möte
+processing stops without result(!), if this number of tokens is reached.	aitools	sv	Bearbetningen avbryts utan resultat (!) om detta antal token uppnås.
 professional reply	aitools	sv	Professionellt svar
 summarize text	aitools	sv	Sammanfatta text
 thank you note	aitools	sv	Tackbrev
+translate	aitools	sv	Översätt
+translation languages	aitools	sv	Översättningsspråk

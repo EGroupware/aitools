@@ -1,11 +1,19 @@
+ai service configuration	aitools	ru	Настройка службы ИИ
 aitools	common	ru	Инструменты искусственного интеллекта
+deepl.com configuration	aitools	ru	Настройка DeepL.com
 fix grammar & spelling	aitools	ru	Исправление грамматики и орфографии
 generate	aitools	ru	Генерация
 generate a subject	aitools	ru	Генерация темы
+insert after	aitools	ru	Вставить после
+insert before	aitools	ru	Вставить перед
 make concise	aitools	ru	Сделать лаконичным
 make more casual	aitools	ru	Сделать более неформальным
 make more formal	aitools	ru	Сделать более формальным
+maximum number of tokens	aitools	ru	Максимальное количество токенов
 meeting follow-up	aitools	ru	Последующие действия по итогам встречи
+processing stops without result(!), if this number of tokens is reached.	aitools	ru	Обработка останавливается без результата (!), если достигается это количество токенов.
 professional reply	aitools	ru	Профессиональный ответ
 summarize text	aitools	ru	Резюмировать текст
 thank you note	aitools	ru	Благодарственное письмо
+translate	aitools	ru	Перевести
+translation languages	aitools	ru	Языки перевода

@@ -1,11 +1,19 @@
+ai service configuration	aitools	lv	AI pakalpojuma konfigurācija
 aitools	common	lv	AI rīki
+deepl.com configuration	aitools	lv	DeepL.com konfigurācija
 fix grammar & spelling	aitools	lv	Labot gramatiku un pareizrakstību
 generate	aitools	lv	Ģenerēt
 generate a subject	aitools	lv	Ģenerēt tematu
+insert after	aitools	lv	Ievietot pēc
+insert before	aitools	lv	Ievietot pirms
 make concise	aitools	lv	Padarīt lakonisku
 make more casual	aitools	lv	Padarīt neformālāku
 make more formal	aitools	lv	Padarīt formālāku
+maximum number of tokens	aitools	lv	Maksimālais simbolu skaits
 meeting follow-up	aitools	lv	Sanāksmes turpinājums
+processing stops without result(!), if this number of tokens is reached.	aitools	lv	Apstrāde tiek pārtraukta bez rezultāta (!), ja tiek sasniegts šis simbolu skaits.
 professional reply	aitools	lv	Profesionāla atbilde
 summarize text	aitools	lv	Kopsavilkt tekstu
 thank you note	aitools	lv	Pateicības vēstule
+translate	aitools	lv	Tulkot
+translation languages	aitools	lv	Tulkošanas valodas

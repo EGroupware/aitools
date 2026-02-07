@@ -1,11 +1,19 @@
+ai service configuration	aitools	fi	AI-palvelun konfigurointi
 aitools	common	fi	AI-työkalut
+deepl.com configuration	aitools	fi	DeepL.com-konfigurointi
 fix grammar & spelling	aitools	fi	Korjaa kielioppi ja oikeinkirjoitus
 generate	aitools	fi	Luo
 generate a subject	aitools	fi	Luo aihe
+insert after	aitools	fi	Lisää jälkeen
+insert before	aitools	fi	Lisää ennen
 make concise	aitools	fi	Tee tiivis
 make more casual	aitools	fi	Tee rennompi
 make more formal	aitools	fi	Tee muodollisempi
+maximum number of tokens	aitools	fi	Tokenien enimmäismäärä
 meeting follow-up	aitools	fi	Kokouksen seuranta
+processing stops without result(!), if this number of tokens is reached.	aitools	fi	Käsittely keskeytyy ilman tulosta (!), jos tämä tokenien määrä saavutetaan.
 professional reply	aitools	fi	Ammattimainen vastaus
 summarize text	aitools	fi	Tiivistä teksti
 thank you note	aitools	fi	Kiitoskirje
+translate	aitools	fi	Käännä
+translation languages	aitools	fi	Käännös kielet

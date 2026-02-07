@@ -1,11 +1,19 @@
+ai service configuration	aitools	uk	Конфігурація служби ШІ
 aitools	common	uk	Інструменти штучного інтелекту
+deepl.com configuration	aitools	uk	Конфігурація DeepL.com
 fix grammar & spelling	aitools	uk	Виправлення граматики та орфографії
 generate	aitools	uk	Генерація
 generate a subject	aitools	uk	Генерація теми
+insert after	aitools	uk	Вставити після
+insert before	aitools	uk	Вставити перед
 make concise	aitools	uk	Стислість
 make more casual	aitools	uk	Більш неформальний стиль
 make more formal	aitools	uk	Більш офіційний стиль
+maximum number of tokens	aitools	uk	Максимальна кількість токенів
 meeting follow-up	aitools	uk	Підсумки зустрічі
+processing stops without result(!), if this number of tokens is reached.	aitools	uk	Обробка зупиняється без результату (!), якщо ця кількість токенів досягнута.
 professional reply	aitools	uk	Професійна відповідь
 summarize text	aitools	uk	Підсумок тексту
 thank you note	aitools	uk	Лист подяки
+translate	aitools	uk	Перекласти
+translation languages	aitools	uk	Мови перекладу

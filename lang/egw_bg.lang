@@ -1,11 +1,19 @@
+ai service configuration	aitools	bg	Конфигурация на AI услугата
 aitools	common	bg	AI инструменти
+deepl.com configuration	aitools	bg	Конфигурация на DeepL.com
 fix grammar & spelling	aitools	bg	Поправяне на граматика и правопис
 generate	aitools	bg	Генериране
 generate a subject	aitools	bg	Генериране на тема
+insert after	aitools	bg	Вмъкване след
+insert before	aitools	bg	Вмъкване преди
 make concise	aitools	bg	Опростяване
 make more casual	aitools	bg	По-неформален стил
 make more formal	aitools	bg	По-формален стил
+maximum number of tokens	aitools	bg	Максимален брой символи
 meeting follow-up	aitools	bg	Проследяване на среща
+processing stops without result(!), if this number of tokens is reached.	aitools	bg	Обработката спира без резултат(!), ако този брой символи бъде достигнат.
 professional reply	aitools	bg	Професионален отговор
 summarize text	aitools	bg	Обобщаване на текст
 thank you note	aitools	bg	Благодарствена бележка
+translate	aitools	bg	Превод
+translation languages	aitools	bg	Езици за превод

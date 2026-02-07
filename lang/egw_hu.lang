@@ -1,11 +1,19 @@
+ai service configuration	aitools	hu	AI szolgáltatás konfigurációja
 aitools	common	hu	AI eszközök
+deepl.com configuration	aitools	hu	DeepL.com konfiguráció
 fix grammar & spelling	aitools	hu	Helyesírási és nyelvtani javítás
 generate	aitools	hu	Generálás
 generate a subject	aitools	hu	Téma generálása
+insert after	aitools	hu	Beillesztés után
+insert before	aitools	hu	Beillesztés előtt
 make concise	aitools	hu	Összefoglalás
 make more casual	aitools	hu	Hangnem lazábbá tétele
 make more formal	aitools	hu	Hangnem formálisabbá tétele
+maximum number of tokens	aitools	hu	Maximális tokenek száma
 meeting follow-up	aitools	hu	Találkozó utáni nyomon követés
+processing stops without result(!), if this number of tokens is reached.	aitools	hu	A feldolgozás eredmény nélkül leáll(!), ha ez a tokenek száma elérhető.
 professional reply	aitools	hu	Professzionális válasz
 summarize text	aitools	hu	Szöveg összefoglalása
 thank you note	aitools	hu	Köszönőlevél
+translate	aitools	hu	Fordítás
+translation languages	aitools	hu	Fordítási nyelvek

@@ -1,11 +1,19 @@
+ai service configuration	aitools	et	AI-teenuse konfiguratsioon
 aitools	common	et	AI-tööriistad
+deepl.com configuration	aitools	et	DeepL.com konfiguratsioon
 fix grammar & spelling	aitools	et	Paranda grammatikat ja õigekirja
 generate	aitools	et	Loo
 generate a subject	aitools	et	Loo teema
+insert after	aitools	et	Sisesta pärast
+insert before	aitools	et	Sisesta enne
 make concise	aitools	et	Tee lühemaks
 make more casual	aitools	et	Tee vabamas stiilis
 make more formal	aitools	et	Tee formaalsemaks
+maximum number of tokens	aitools	et	Maksimaalne märkide arv
 meeting follow-up	aitools	et	Koosoleku järelmeetmed
+processing stops without result(!), if this number of tokens is reached.	aitools	et	Kui see märkide arv on saavutatud, peatub töötlemine tulemuseta(!).
 professional reply	aitools	et	Professionaalne vastus
 summarize text	aitools	et	Kokkuvõte tekstist
 thank you note	aitools	et	Tänukiri
+translate	aitools	et	Tõlgi
+translation languages	aitools	et	Tõlkimiskeeled

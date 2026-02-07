@@ -1,11 +1,19 @@
+ai service configuration	aitools	nl	AI-serviceconfiguratie
 aitools	common	nl	AI-tools
+deepl.com configuration	aitools	nl	DeepL.com-configuratie
 fix grammar & spelling	aitools	nl	Grammatica en spelling corrigeren
 generate	aitools	nl	Genereren
 generate a subject	aitools	nl	Een onderwerp genereren
+insert after	aitools	nl	Invoegen na
+insert before	aitools	nl	Invoegen voor
 make concise	aitools	nl	Beknopt maken
 make more casual	aitools	nl	Informeler maken
 make more formal	aitools	nl	Formeler maken
+maximum number of tokens	aitools	nl	Maximaal aantal tokens
 meeting follow-up	aitools	nl	Follow-up van vergadering
+processing stops without result(!), if this number of tokens is reached.	aitools	nl	De verwerking stopt zonder resultaat (!) als dit aantal tokens wordt bereikt.
 professional reply	aitools	nl	Professioneel antwoord
 summarize text	aitools	nl	Tekst samenvatten
 thank you note	aitools	nl	Bedankbriefje
+translate	aitools	nl	Vertalen
+translation languages	aitools	nl	Vertaaltalen

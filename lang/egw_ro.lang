@@ -1,11 +1,19 @@
+ai service configuration	aitools	ro	Configurarea serviciului AI
 aitools	common	ro	Instrumente AI
+deepl.com configuration	aitools	ro	Configurarea DeepL.com
 fix grammar & spelling	aitools	ro	Corectează gramatica și ortografia
 generate	aitools	ro	Generează
 generate a subject	aitools	ro	Generează un subiect
+insert after	aitools	ro	Inserați după
+insert before	aitools	ro	Inserați înainte
 make concise	aitools	ro	Fă concis
 make more casual	aitools	ro	Fă mai informal
 make more formal	aitools	ro	Fă mai formal
+maximum number of tokens	aitools	ro	Număr maxim de tokenuri
 meeting follow-up	aitools	ro	Urmărirea întâlnirii
+processing stops without result(!), if this number of tokens is reached.	aitools	ro	Procesarea se oprește fără rezultat(!), dacă se atinge acest număr de tokenuri.
 professional reply	aitools	ro	Răspuns profesional
 summarize text	aitools	ro	Rezumează textul
 thank you note	aitools	ro	Notă de mulțumire
+translate	aitools	ro	Traduceți
+translation languages	aitools	ro	Limbi de traducere

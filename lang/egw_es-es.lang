@@ -1,11 +1,19 @@
+ai service configuration	aitools	es-es	Configuración del servicio de AI
 aitools	common	es-es	Herramientas de IA
+deepl.com configuration	aitools	es-es	Configuración de DeepL.com
 fix grammar & spelling	aitools	es-es	Corregir gramática y ortografía
 generate	aitools	es-es	Generar
 generate a subject	aitools	es-es	Generar un asunto
+insert after	aitools	es-es	Insertar después
+insert before	aitools	es-es	Insertar antes
 make concise	aitools	es-es	Hacer más conciso
 make more casual	aitools	es-es	Hacer más informal
 make more formal	aitools	es-es	Hacer más formal
+maximum number of tokens	aitools	es-es	Número máximo de tokens
 meeting follow-up	aitools	es-es	Seguimiento de reuniones
+processing stops without result(!), if this number of tokens is reached.	aitools	es-es	El procesamiento se detiene sin resultado (!), si se alcanza este número de tokens.
 professional reply	aitools	es-es	Respuesta profesional
 summarize text	aitools	es-es	Resumir texto
 thank you note	aitools	es-es	Nota de agradecimiento
+translate	aitools	es-es	Traducir
+translation languages	aitools	es-es	Idiomas de traducción
