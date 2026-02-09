@@ -52,6 +52,11 @@ Your task will be specified before the content block.
 	const PRESERVE_MARKUP = "\n- If the content contains HTML or markup you should use it in the response.  ";
 
 	/**
+	 * Prefix for all translation prompts (lang-code to be added to get the full prompt-id)
+	 */
+	const TRANSLATION_PROMPT_PREFIX = 'aiassist.translate-';
+
+	/**
 	 * Constructor
 	 */
 	public function __construct()
@@ -87,7 +92,7 @@ Your task will be specified before the content block.
 		}
 
 		// Check if this is a translation task for optimizations
-		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
+		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
 		if($is_translation)
 		{
 			[, $target_lang] = explode('-', $prompt_id, 2);
@@ -200,7 +205,7 @@ Your task will be specified before the content block.
 		{
 			if (isset($all_langs[$code]))
 			{
-				$prompts['aiassist.translate-' . $code] = str_replace('{$lang}', $all_langs[$code], $template);
+				$prompts[self::TRANSLATION_PROMPT_PREFIX . $code] = str_replace('{$lang}', $all_langs[$code], $template);
 			}
 		}
 		return $prompts;
@@ -446,7 +451,7 @@ Your task will be specified before the content block.
 	protected function call_ai_api($config, $messages, $prompt_id = '')
 	{
 		// Optimize parameters based on task type
-		$is_translation = str_starts_with($prompt_id, 'aiassist.translate-');
+		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
 		
 		$data = [
 			'model' => $config['model'],
@@ -495,17 +500,20 @@ Your task will be specified before the content block.
 			$error_details = '';
 			if ($response) {
 				$error_response = json_decode($response, true);
-				$error_details = $error_response['error']['message'] ?? $response;
+				$error_details = $error_response['messages']['message'] ?? $error_response['error']['message'] ?? $response;
 			}
 			
 			// Security: Log detailed errors but show generic message to users
 			// Skip verbose logging for faster error handling
-			if (!$is_translation) {
+			if ($error_details || !$is_translation)
+			{
 				$detailed_error = "AI API request failed with status: $http_code";
-				if ($error_details) {
+				if ($error_details)
+				{
 					$detailed_error .= " - " . $error_details;
 				}
-				if (isset($config['api_url'])) {
+				if (isset($config['api_url']))
+				{
 					$detailed_error .= " (URL: " . $config['api_url'] . ")";
 				}
 				error_log($detailed_error);
@@ -513,19 +521,30 @@ Your task will be specified before the content block.
 			
 			// User-friendly messages without exposing internal details
 			$error_message = 'AI service request failed. ';
-			if ($http_code === 401) {
-				$error_message .= 'Authentication error. Please contact your administrator.';
-			} elseif ($http_code === 404) {
-				$error_message .= 'Service endpoint not found. Please contact your administrator.';
-			} elseif ($http_code === 429) {
-				$error_message .= 'Rate limit exceeded. Please try again later.';
-			} elseif ($http_code >= 500) {
-				$error_message .= 'Service temporarily unavailable. Please try again later.';
-			} else {
-				$error_message .= 'Please contact your administrator.';
+			switch($http_code)
+			{
+				case 400:   // model not on price-list
+				case 456:   // over budget
+					$error_message .= $error_details.' Please contact your administrator.';
+					break;
+				case 401:
+					$error_message .= 'Authentication error. Please contact your administrator.';
+					break;
+				case 404:
+					$error_message .= 'Service endpoint not found. Please contact your administrator.';
+					break;
+				case 429:
+					$error_message .= 'Rate limit exceeded. Please try again later.';
+					break;
+				case 500:
+					$error_message .= 'Service temporarily unavailable. Please try again later.';
+					break;
+				default:
+					$error_message .= 'Please contact your administrator.';
+					break;
 			}
 			
-			throw new \Exception($error_message);
+			throw new \Exception($error_message, $http_code);
 		}
 		
 		// Security: Validate response content type
@@ -578,7 +597,8 @@ Your task will be specified before the content block.
 				],
 				[
 					'role'    => 'user',
-					'content' => $this->get_translation_prompts()[$target_lang] . "\n\n" . $wrapped_content
+					'content' => $this->get_translation_prompts()[self::TRANSLATION_PROMPT_PREFIX.$target_lang] .
+						"\n\n" . $wrapped_content
 				]
 			];
 			// Call AI API with task-specific optimizations
