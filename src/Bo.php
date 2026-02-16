@@ -87,9 +87,6 @@ Your task will be specified before the content block.
 		
 		// Get AI configuration
 		$api_config = $this->get_ai_config();
-		if (empty($api_config['api_key'])) {
-			throw new \Exception('AI API not configured. Please contact your administrator.');
-		}
 
 		// Check if this is a translation task for optimizations
 		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
