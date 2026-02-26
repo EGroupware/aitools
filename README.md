@@ -7,7 +7,7 @@
 
 ## Integration
 * composing Mail (rich-text-editor)
-* Mails diesplay (iframe)
+* Mails display (iframe)
 * multiline text-fields of diverse applications
 
 ## Requirements
