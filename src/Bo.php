@@ -16,6 +16,7 @@ use DeepL\Language;
 use DeepL\TranslateTextOptions;
 use DeepL\Translator;
 use EGroupware\Api;
+use OpenAI;
 
 /**
  * Business logic for AI Tools
@@ -675,5 +676,53 @@ Your task will be specified before the content block.
 			'ok'      => false,
 			'message' => $msg
 		];
+	}
+
+	/**
+	 * Search available models on configured endpoint
+	 *
+	 * @param ?string $search_text
+	 * @param array $search_options
+	 * @return array
+	 */
+	public static function ajax_model_search(?string $search_text=null, array $search_options = []) : array
+	{
+		$query = $search_text ?? $_REQUEST['query'];
+
+		// query models and cache them for 120s
+		/** @var OpenAI\Responses\Models\RetrieveResponse[] $models */
+		$models = Api\Cache::getInstance(__CLASS__, 'models', static function ()
+		{
+			$config = self::get_ai_config();
+			require_once __DIR__.'/../../rag/vendor/autoload.php';
+			$factory = \Openai::factory();
+			$factory->withBaseUri($config['api_url']);
+			if (!empty($config['api_key'])) $factory->withApiKey($config['api_key']);
+			$client = $factory->make();
+
+			try {
+				$models = $client->models()->list()->data ?? [];
+			}
+			catch (\Exception $e) {
+				$models = [];
+			}
+			return $models;
+		}, [], 120);
+
+		$results = $models ? [] : ['' => lang('No models found, maybe endpoint not correctly configured!')];
+		foreach ($models as $model)
+		{
+			if (empty($query) || stripos($model->id, $query) !== false)
+			{
+				$results[] = ['id' => $model->id, 'label' => $model->id];
+			}
+		}
+
+		// switch regular JSON response handling off
+		Api\Json\Request::isJSONRequest(false);
+
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
+		exit;
 	}
 }
