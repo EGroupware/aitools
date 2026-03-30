@@ -522,6 +522,9 @@ Your task will be specified before the content block.
 			$error_message = 'AI service request failed. ';
 			switch($http_code)
 			{
+				case 403:   // Token budget is used up
+					$error_message = $detailed_error;
+					break;
 				case 400:   // model not on price-list
 				case 456:   // over budget
 					$error_message .= $error_details.' Please contact your administrator.';
