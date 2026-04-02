@@ -16,6 +16,7 @@ use DeepL\Language;
 use DeepL\TranslateTextOptions;
 use DeepL\Translator;
 use EGroupware\Api;
+use OpenAI;
 
 /**
  * Business logic for AI Tools
@@ -57,14 +58,6 @@ Your task will be specified before the content block.
 	const TRANSLATION_PROMPT_PREFIX = 'aiassist.translate-';
 
 	/**
-	 * Constructor
-	 */
-	public function __construct()
-	{
-
-	}
-	
-	/**
 	 * Process predefined prompts for text widgets
 	 * 
 	 * @param string $prompt_id The predefined prompt ID
@@ -85,9 +78,6 @@ Your task will be specified before the content block.
 			throw new \Exception('Content too large. Maximum size is ' . (self::MAX_CONTENT_LENGTH / 1024) . ' KB.');
 		}
 		
-		// Get AI configuration
-		$api_config = $this->get_ai_config();
-
 		// Check if this is a translation task for optimizations
 		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
 		if($is_translation)
@@ -129,7 +119,7 @@ Your task will be specified before the content block.
 		];
 
 		// Call AI API with task-specific optimizations
-		$ai_response = $this->call_ai_api($api_config, $messages, $prompt_id);
+		$ai_response = $this->call_ai_api([], $messages, $prompt_id);
 
 		// Return just the processed content, not the full response structure
 		$response = $ai_response['content'] ?? $content;
@@ -210,17 +200,21 @@ Your task will be specified before the content block.
 
 	/**
 	 * Get AI configuration
+	 *
+	 * @return array with values for keys "api_url", "api_key", "model", "provider", "max_token"
 	 */
-	function get_ai_config()
+	public static function get_ai_config()
 	{
 		$config = Api\Config::read(self::APP);
-		// splitt off provider prefix
+		// split off provider prefix
 		[$provider, $model] = explode(':', $config['ai_model'], 2)+[null, null];
 
 		return [
-			'api_url' => $config['ai_api_url'] ?? Hooks::getProviderUrlMapping()[$provider],
+			'api_url' => $config['ai_api_url'] ?? Hooks::getProviderUrlMapping()[$provider] ??
+				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!')),
 			'api_key' => trim($config['ai_api_key'] ?? ''),
-			'model'   => $model ?? $config['ai_custom_model'] ?? null,
+			'model'   => $model ?? $config['ai_custom_model'] ??
+				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!')),
 			'provider' => $provider,
 			'max_tokens' => $config['ai_max_tokens'] ?? null,
 		];
@@ -237,44 +231,15 @@ Your task will be specified before the content block.
 	 */
 	public static function test_api_connection(?array $config=null) : bool
 	{
-		if (!isset($config))
-		{
-			$config = (new self)->get_ai_config();
-		}
+		$config ??= self::get_ai_config();
+
 		if (empty($config['api_url']) || empty($config['model']))
 		{
-			throw new Api\Exception('Missing configuration: API URL or Model!');
+			throw new Api\Exception(lang('Missing AI configuration: API URL or Model!'));
 		}
-		$headers = [
-			'Content-Type: application/json',
-		];
-		if (!empty($config['api_key']))
+		if (!in_array($config['model'], self::models(false, $config)))
 		{
-			// Security: Sanitize API key to prevent HTTP header injection
-			$safe_api_key = preg_replace('/[\r\n]/', '', $config['api_key']);
-			$headers[] = 'Authorization: Bearer ' . $safe_api_key;
-		}
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/models');
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-
-		$response = curl_exec($ch);
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		curl_close($ch);
-
-		if ($http_code !== 200)
-		{
-			throw new \Exception('HTTP ' . $http_code . ': ' . $response);
-		}
-
-		$result = json_decode($response, true, JSON_THROW_ON_ERROR);
-
-		if (!array_filter($result['data'] ?? [], fn($model) => $model['id'] === $config['model']))
-		{
-			throw new \Exception("Invalid model $config[model], not supported by endpoint!");
+			throw new \Exception(lang("Invalid model %1, not supported by endpoint!", $config['model']));
 		}
 
 		return true;
@@ -445,8 +410,11 @@ Your task will be specified before the content block.
 	/**
 	 * Call AI API
 	 */
-	protected function call_ai_api($config, $messages, $prompt_id = '')
+	protected function call_ai_api(array $config, array $messages, ?string $prompt_id = '')
 	{
+		// add what's not explicitly given from our config
+		$config += self::get_ai_config();
+
 		// Optimize parameters based on task type
 		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
 		
@@ -454,10 +422,14 @@ Your task will be specified before the content block.
 			'model' => $config['model'],
 			'messages' => $messages,
 			// Translation is deterministic - use low temperature for faster, more consistent results
-			'temperature' => $is_translation ? 0.1 : 0.7,
+			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
 			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
+			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
 		];
+		if (isset($config['top_p']))
+		{
+			$data['top_p'] = $config['top_p'];
+		}
 		
 		// Security: Sanitize API key to prevent HTTP header injection
 		$safe_api_key = preg_replace('/[\r\n]/', '', $config['api_key']);
@@ -489,13 +461,16 @@ Your task will be specified before the content block.
 		$curl_error = curl_error($ch);
 		curl_close($ch);
 		
-		if ($curl_error) {
+		if ($curl_error)
+		{
 			throw new \Exception('API request failed: ' . $curl_error);
 		}
 		
-		if ($http_code !== 200) {
+		if ($http_code !== 200)
+		{
 			$error_details = '';
-			if ($response) {
+			if ($response)
+			{
 				$error_response = json_decode($response, true);
 				$error_details = $error_response['messages']['message'] ?? $error_response['error']['message'] ?? $response;
 			}
@@ -520,6 +495,9 @@ Your task will be specified before the content block.
 			$error_message = 'AI service request failed. ';
 			switch($http_code)
 			{
+				case 403:   // Token budget is used up
+					$error_message = $detailed_error;
+					break;
 				case 400:   // model not on price-list
 				case 456:   // over budget
 					$error_message .= $error_details.' Please contact your administrator.';
@@ -599,8 +577,7 @@ Your task will be specified before the content block.
 				]
 			];
 			// Call AI API with task-specific optimizations
-			$api_config = $this->get_ai_config();
-			$response = $this->call_ai_api($api_config, $messages, "aiassist.translate-" . $target_lang);
+			$response = $this->call_ai_api([], $messages, "aiassist.translate-" . $target_lang);
 
 			// Return just the processed content, not the full response structure
 			$content = $response['content'] ?? $content;
@@ -675,5 +652,84 @@ Your task will be specified before the content block.
 			'ok'      => false,
 			'message' => $msg
 		];
+	}
+
+	/**
+	 * Get available models
+	 *
+	 * @param bool $use_cache true: use cached data, false: request now
+	 * @param array|null $config default use data from self::get_ai_config
+	 * @return string[]
+	 */
+	public static function models(bool $use_cache=true, ?array $config=null)
+	{
+		// query models and cache them for 120s
+		if (!$use_cache) Api\Cache::unsetInstance(__CLASS__, 'models');
+		return Api\Cache::getInstance(__CLASS__, 'models', static function() use ($config)
+		{
+			$config ??= self::get_ai_config();
+			if (empty($config['api_url']))
+			{
+				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!'));
+			}
+			$headers = [
+				'Content-Type: application/json',
+			];
+			if (!empty($config['api_key']))
+			{
+				// Security: Sanitize API key to prevent HTTP header injection
+				$safe_api_key = preg_replace('/[\r\n]/', '', $config['api_key']);
+				$headers[] = 'Authorization: Bearer ' . $safe_api_key;
+			}
+
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/models');
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+			$response = curl_exec($ch);
+			$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+
+			if ($http_code !== 200)
+			{
+				throw new \Exception('HTTP ' . $http_code . ': ' . $response);
+			}
+
+			$result = json_decode($response, true, JSON_THROW_ON_ERROR);
+
+			return array_map(static fn($model) => $model['id'], $result['data'] ?? []);
+		}, [], 3600);
+	}
+
+	/**
+	 * Search available models on configured endpoint
+	 *
+	 * @param ?string $search_text
+	 * @param array $search_options
+	 * @return array
+	 */
+	public static function ajax_model_search(?string $search_text=null, array $search_options = []) : array
+	{
+		$query = $search_text ?? $_REQUEST['query'];
+
+		$models = self::models();
+
+		$results = $models ? [] : ['' => lang('No models found, maybe endpoint not correctly configured!')];
+		foreach ($models as $model)
+		{
+			if (empty($query) || stripos($model, $query) !== false)
+			{
+				$results[] = ['id' => $model, 'label' => $model];
+			}
+		}
+
+		// switch regular JSON response handling off
+		Api\Json\Request::isJSONRequest(false);
+
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
+		exit;
 	}
 }
