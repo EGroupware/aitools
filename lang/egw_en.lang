@@ -18,6 +18,7 @@ generate a subject	aitools	en	Generate a subject
 generating professional reply...	aitools	en	Generating professional reply...
 insert after	aitools	en	Insert after
 insert before	aitools	en	Insert before
+invalid model %1, not supported by endpoint!	common	en	Invalid model %1, not supported by endpoint!
 make concise	aitools	en	Make concise
 make more casual	aitools	en	Make more casual
 make more formal	aitools	en	Make more formal
@@ -26,6 +27,8 @@ making text more concise...	aitools	en	Making text more concise...
 making text more formal...	aitools	en	Making text more formal...
 maximum number of tokens	aitools	en	Maximum number of tokens
 meeting follow-up	aitools	en	Meeting follow-up
+missing ai configuration: api url or model!	common	en	Missing AI configuration: API URL or Model!
+no models found, maybe endpoint not correctly configured!	common	en	No models found, maybe endpoint not correctly configured!
 no result received from ai	aitools	en	No result received from AI
 processing stops without result(!), if this number of tokens is reached.	aitools	en	Processing stops without result(!), if this number of tokens is reached.
 professional reply	aitools	en	Professional reply

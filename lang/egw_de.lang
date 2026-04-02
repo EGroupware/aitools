@@ -6,11 +6,14 @@ generate	aitools	de	Generiere
 generate a subject	aitools	de	Betreff generieren
 insert after	aitools	de	Dahinter einfügen
 insert before	aitools	de	Davor einfügen
+invalid model %1, not supported by endpoint!	common	de	Ungültiges Model %1, wird vom Endpunkt nicht unterstützt!
 make concise	aitools	de	Prägnant formulieren
 make more casual	aitools	de	Lockerer formulieren
 make more formal	aitools	de	Formeller formulieren
 maximum number of tokens	aitools	de	Maximale Anzahl von Tokens
 meeting follow-up	aitools	de	Nachbereitung des Meetings
+missing ai configuration: api url or model!	common	de	Fehlende AI Konfiguration: API URL order Model!
+no models found, maybe endpoint not correctly configured!	common	de	Keine Modelle gefunden, evtl. ist der Endpunkt nicht korrekt konfiguriert!
 processing stops without result(!), if this number of tokens is reached.	aitools	de	Die Verarbeitung wird ohne Ergebnis beendet (!), wenn diese Anzahl an Tokens erreicht ist.
 professional reply	aitools	de	Professionelle Antwort
 summarize text	aitools	de	Text zusammenfassen

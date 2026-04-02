@@ -210,9 +210,11 @@ Your task will be specified before the content block.
 		[$provider, $model] = explode(':', $config['ai_model'], 2)+[null, null];
 
 		return [
-			'api_url' => $config['ai_api_url'] ?? Hooks::getProviderUrlMapping()[$provider],
+			'api_url' => $config['ai_api_url'] ?? Hooks::getProviderUrlMapping()[$provider] ??
+				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!')),
 			'api_key' => trim($config['ai_api_key'] ?? ''),
-			'model'   => $model ?? $config['ai_custom_model'] ?? null,
+			'model'   => $model ?? $config['ai_custom_model'] ??
+				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!')),
 			'provider' => $provider,
 			'max_tokens' => $config['ai_max_tokens'] ?? null,
 		];
@@ -229,44 +231,15 @@ Your task will be specified before the content block.
 	 */
 	public static function test_api_connection(?array $config=null) : bool
 	{
-		if (!isset($config))
-		{
-			$config = self::get_ai_config();
-		}
+		$config ??= self::get_ai_config();
+
 		if (empty($config['api_url']) || empty($config['model']))
 		{
-			throw new Api\Exception('Missing configuration: API URL or Model!');
+			throw new Api\Exception(lang('Missing AI configuration: API URL or Model!'));
 		}
-		$headers = [
-			'Content-Type: application/json',
-		];
-		if (!empty($config['api_key']))
+		if (!in_array($config['model'], self::models(false, $config)))
 		{
-			// Security: Sanitize API key to prevent HTTP header injection
-			$safe_api_key = preg_replace('/[\r\n]/', '', $config['api_key']);
-			$headers[] = 'Authorization: Bearer ' . $safe_api_key;
-		}
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/models');
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-
-		$response = curl_exec($ch);
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		curl_close($ch);
-
-		if ($http_code !== 200)
-		{
-			throw new \Exception('HTTP ' . $http_code . ': ' . $response);
-		}
-
-		$result = json_decode($response, true, JSON_THROW_ON_ERROR);
-
-		if (!array_filter($result['data'] ?? [], fn($model) => $model['id'] === $config['model']))
-		{
-			throw new \Exception("Invalid model $config[model], not supported by endpoint!");
+			throw new \Exception(lang("Invalid model %1, not supported by endpoint!", $config['model']));
 		}
 
 		return true;
@@ -682,6 +655,55 @@ Your task will be specified before the content block.
 	}
 
 	/**
+	 * Get available models
+	 *
+	 * @param bool $use_cache true: use cached data, false: request now
+	 * @param array|null $config default use data from self::get_ai_config
+	 * @return string[]
+	 */
+	public static function models(bool $use_cache=true, ?array $config=null)
+	{
+		// query models and cache them for 120s
+		if (!$use_cache) Api\Cache::unsetInstance(__CLASS__, 'models');
+		return Api\Cache::getInstance(__CLASS__, 'models', static function() use ($config)
+		{
+			$config ??= self::get_ai_config();
+			if (empty($config['api_url']))
+			{
+				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!'));
+			}
+			$headers = [
+				'Content-Type: application/json',
+			];
+			if (!empty($config['api_key']))
+			{
+				// Security: Sanitize API key to prevent HTTP header injection
+				$safe_api_key = preg_replace('/[\r\n]/', '', $config['api_key']);
+				$headers[] = 'Authorization: Bearer ' . $safe_api_key;
+			}
+
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/models');
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+			$response = curl_exec($ch);
+			$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+
+			if ($http_code !== 200)
+			{
+				throw new \Exception('HTTP ' . $http_code . ': ' . $response);
+			}
+
+			$result = json_decode($response, true, JSON_THROW_ON_ERROR);
+
+			return array_map(static fn($model) => $model['id'], $result['data'] ?? []);
+		}, [], 3600);
+	}
+
+	/**
 	 * Search available models on configured endpoint
 	 *
 	 * @param ?string $search_text
@@ -692,32 +714,14 @@ Your task will be specified before the content block.
 	{
 		$query = $search_text ?? $_REQUEST['query'];
 
-		// query models and cache them for 120s
-		/** @var OpenAI\Responses\Models\RetrieveResponse[] $models */
-		$models = Api\Cache::getInstance(__CLASS__, 'models', static function ()
-		{
-			$config = self::get_ai_config();
-			require_once __DIR__.'/../../rag/vendor/autoload.php';
-			$factory = \Openai::factory();
-			$factory->withBaseUri($config['api_url']);
-			if (!empty($config['api_key'])) $factory->withApiKey($config['api_key']);
-			$client = $factory->make();
-
-			try {
-				$models = $client->models()->list()->data ?? [];
-			}
-			catch (\Exception $e) {
-				$models = [];
-			}
-			return $models;
-		}, [], 120);
+		$models = self::models();
 
 		$results = $models ? [] : ['' => lang('No models found, maybe endpoint not correctly configured!')];
 		foreach ($models as $model)
 		{
-			if (empty($query) || stripos($model->id, $query) !== false)
+			if (empty($query) || stripos($model, $query) !== false)
 			{
-				$results[] = ['id' => $model->id, 'label' => $model->id];
+				$results[] = ['id' => $model, 'label' => $model];
 			}
 		}
 
