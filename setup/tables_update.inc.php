@@ -42,7 +42,7 @@ EOF, true], // disabled by default, meant for the admin to add something instanc
 		'aiassist.summarize'        => ['Summarize text', 'Summarize this text concisely, preserving key information and main points.'],
 		'aiassist.generate_subject' => ['Generate a subject', 'Generate a clear and concise subject line (no quotes).'],
 		'aiassist.formal'           => ['Make more formal', 'Rewrite this text in a professional and formal tone.'],
-		'aiassist.casual'           => ['Make more causal', 'Rewrite this text in a casual and friendly tone.'],
+		'aiassist.casual'           => ['Make more casual', 'Rewrite this text in a casual and friendly tone.'],
 		'aiassist.grammar'          => ['Fix grammar & spelling', 'Correct grammar, spelling, and punctuation errors.'],
 		'aiassist.concise'          => ['Make concise', 'Make this text more concise while preserving all important information.'],
 		'aiassist.translate'        => ['Translate', <<<EOF
@@ -60,7 +60,7 @@ EOF],
 	{
 		[$label, $prompt, $disabled] = $data + [null, null, null];
 		// do NOT update disabled prompts, as the admin might have enabled and changed them
-		if ($disabled === true && $db->select('egw_ai_prompts', 'COUNT(*)', ['prompt_name' => $name, 'NOT prompt_disabled'],
+		if ($disabled === true && $db->select('egw_ai_prompts', 'COUNT(*)', ['prompt_name' => $name, 'prompt_disabled IS NOT NULL'],
 			__LINE__, __FILE__, false, '', 'aitools')->fetchColumn())
 		{
 			continue;
@@ -111,4 +111,12 @@ function aitools_upgrade26_1_001() : string
 	aitools_egroupware_prompts();
 
 	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.002';
+}
+
+function aitools_upgrade26_1_002() : string
+{
+	// update prompts
+	aitools_egroupware_prompts();
+
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.003';
 }
