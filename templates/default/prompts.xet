@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE overlay PUBLIC "-//EGroupware GmbH//eTemplate 2.0//EN" "https://www.egroupware.org/etemplate2.0.dtd">
+<overlay>
+	<template id="aitools.prompts.rows" template="" lang="" group="0" version="19.1.001">
+		<grid width="100%">
+			<columns>
+				<column width="15"/>  <!-- # -->
+				<column width="15%"/> <!-- ID -->
+				<column width="80"/>  <!-- disabled -->
+				<column width="15%"/> <!-- label -->
+				<!-- column width="25%"/--> <!-- prompt -->
+				<column width="15%"/> <!-- apps -->
+				<column width="15%"/> <!-- account_id -->
+				<column width="120"/> <!-- modified/er -->
+			</columns>
+			<rows>
+				<row class="th">
+					<nextmatch-sortheader label="#" id="id"/>
+					<nextmatch-sortheader label="ID" id="name"/>
+					<et2-nextmatch-header-filter emptyLabel="Disabled" id="disabled"></et2-nextmatch-header-filter>
+					<nextmatch-sortheader label="Label" id="label"/>
+					<!--nextmatch-sortheader label="Prompt" id="text"/-->
+					<et2-nextmatch-header-filter emptyLabel="Applications" id="apps"></et2-nextmatch-header-filter>
+					<et2-nextmatch-header-account emptyLabel="Accounts" id="account_id"></et2-nextmatch-header-account>
+					<et2-vbox>
+						<nextmatch-sortheader label="Last modified" id="modified"/>
+						<et2-nextmatch-header-account  id="modifier"/>
+					</et2-vbox>
+				</row>
+				<row class="$row_cont[cat_id] $row_cont[class]">
+					<et2-description id="${row}[id]"></et2-description>
+					<et2-description id="${row}[name]"></et2-description>
+					<et2-checkbox id="${row}[disabled]" readonly="true" align="center"></et2-checkbox>
+					<et2-description id="${row}[label]"></et2-description>
+					<!--et2-description id="${row}[text]" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden"></et2-description-->
+					<et2-select-app id="${row}[apps]" multiple="true" readonly="true"></et2-select-app>
+					<et2-select-account id="${row}[account_id]" multiple="true" accountType="both" readonly="true"></et2-select-account>
+					<et2-vbox>
+						<et2-date-time  id="${row}[modified]" readonly="true"></et2-date-time>
+						<et2-select-account  id="${row}[modifier]" readonly="true"></et2-select-account>
+					</et2-vbox>
+				</row>
+			</rows>
+		</grid>
+	</template>
+	<template id="aitools.prompts.header" template="" lang="" group="0" version="19.1.001">
+		<et2-toolbar id="toolbar">
+			<et2-button label="Add" id="add" slot="prefix" noSubmit="true"
+				onclick="egw(window).openPopup(egw::link('/index.php','menuaction=aitools.EGroupware\\AiTools\\Admin.edit'),'640','480','_blank','example',null,true); return false;"></et2-button>
+			<template template="api.search-button" slot="prefix"></template>
+			<et2-select-app id="apps" ariaLabel="Applications" onchange="app.aitools.changeNmFilter"/>
+			<et2-select-account id="account_id" emptyLabel="All accounts" onchange="app.aitools.changeNmFilter"/>
+			<et2-select id="disabled" emptyLabel="All" onchange="app.aitools.changeNmFilter"/>
+		</et2-toolbar>
+	</template>
+	<template id="aitools.prompts" template="" lang="" group="0" version="19.1.001">
+		<template template="aitools.prompts.header" slot="main-header"></template>
+		<nextmatch id="nm" options="aitools.prompts.rows"/>
+	</template>
+</overlay>

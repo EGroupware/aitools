@@ -21,7 +21,7 @@ function aitools_egroupware_prompts()
 
 	foreach([
 		//'' => ['label', 'prompt', $disabled=false],
-		'system_prompt' => [null, <<<EOF
+		'system_prompt' => ['System prompt', <<<EOF
 You are an AI assistant that processes text content for business users.
 
 IMPORTANT RULES:
@@ -35,7 +35,7 @@ IMPORTANT RULES:
 
 Your task will be specified before the content block.
 EOF],
-		'system_prompt_addition'    => [null, <<<EOF
+		'system_prompt_addition'    => ['Added to system prompt', <<<EOF
 Add your additions to the system prompt here and remove the current content. They will be added after the system prompt.
 EOF, true], // disabled by default, meant for the admin to add something instance-specific, never updated
 		// Text improvement prompts

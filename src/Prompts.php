@@ -23,6 +23,8 @@ class Prompts extends Api\Storage\Base
 	public function __construct()
 	{
 		parent::__construct(self::APP, self::TABLE, null, 'prompt_', true, 'object');
+
+		$this->convert_all_timestamps();
 	}
 
 	/**
@@ -34,6 +36,8 @@ class Prompts extends Api\Storage\Base
 		return $instance ??= new static();
 	}
 
+	const PROMPT_CACHE_LOCATION = 'prompts';
+
 	/**
 	 * Get all not disabled prompts for a given user
 	 *
@@ -43,8 +47,8 @@ class Prompts extends Api\Storage\Base
 	 */
 	public static function prompts(?int $account_id=null, bool $return_system_prompts=false) : array
 	{
-		Api\Cache::unsetInstance(self::APP, 'prompts');
-		$prompts = Api\Cache::getInstance(self::APP, 'prompts', static function()
+		// self::invalidate();
+		$prompts = Api\Cache::getInstance(self::APP, self::PROMPT_CACHE_LOCATION, static function()
 		{
 			$instance = self::instance();
 			$prompts = [];
@@ -74,6 +78,14 @@ class Prompts extends Api\Storage\Base
 	}
 
 	/**
+	 * Invalidate cached prompts
+	 */
+	protected function invalidate()
+	{
+		Api\Cache::unsetInstance(self::APP, self::PROMPT_CACHE_LOCATION);
+	}
+
+	/**
 	 * Get the system prompt, both concatenated, if not disabled:
 	 * - system_prompt
 	 * - system_prompt_addition
@@ -99,5 +111,39 @@ class Prompts extends Api\Storage\Base
 		$prompts = self::prompts();
 
 		return $prompts['aiassist.translate.custom'] ?? $prompts['aiassist.translate'] ?? null;
+	}
+
+	/**
+	 * Save a prompt and invalidate the cache
+	 *
+	 * @param $keys
+	 * @param $extra_where
+	 * @return bool|int
+	 */
+	public function save($keys = null, $extra_where = null)
+	{
+		if (is_array($keys) && count($keys)) $this->data_merge($keys);
+
+		$this->data['modifier'] = $GLOBALS['egw_info']['user']['account_id'];
+		$this->data['modified'] = new Api\DateTime();
+		$this->data['disabled'] = (int)!empty($this->data['disabled']);     // cast to int, as $this->empty_on_write==='NULL' will change false --> null
+
+		// for stock entries keep disabled === NULL for not disabled, while custom entries should be 0=false
+		if (!empty($this->data['id']) && !$this->data['disabled'])
+		{
+			$backup = $this->data;
+			$old = $this->read($this->data['id']);
+			$this->data = $backup;
+			if (!isset($old['disabled']))
+			{
+				$this->data['disabled'] = null;
+			}
+		}
+
+		$ret = parent::save(null, $extra_where);
+
+		self::invalidate();
+
+		return $ret;
 	}
 }

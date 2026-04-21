@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE overlay PUBLIC "-//EGroupware GmbH//eTemplate 2.0//EN" "https://www.egroupware.org/etemplate2.0.dtd">
+<overlay>
+	<template id="aitools.prompt.prompt" template="" lang="" group="0" version="19.1.001">
+		<et2-textarea  id="text" rows="14" width="100%" required="true"></et2-textarea>
+	</template>
+	<template id="aitools.prompt.remarks" template="" lang="" group="0" version="19.1.001">
+		<et2-textarea  id="remark" rows="14" width="100%"></et2-textarea>
+	</template>
+	<template id="aitools.prompt" template="" lang="" group="0" version="19.1">
+		<grid width="100%">
+			<columns>
+				<column width="100"/>
+				<column/>
+			</columns>
+			<rows>
+				<row>
+					<et2-description for="name" value="ID"></et2-description>
+					<et2-hbox>
+						<et2-textbox id="name" tabindex="1" maxlength="64" required="true"></et2-textbox>
+						<et2-checkbox id="disabled" label="Disabled" style="width: fit-content"></et2-checkbox>
+						<et2-number id="order" placeholder="order"></et2-number>
+					</et2-hbox>
+				</row>
+				<row>
+					<et2-description for="label" value="Label"></et2-description>
+					<et2-textbox id="label" tabindex="1" maxlength="64" required="true"></et2-textbox>
+				</row>
+				<row>
+					<et2-description for="apps" value="Applications"></et2-description>
+					<et2-select-app id="apps" multiple="true" emptyLabel="All"></et2-select-app>
+				</row>
+				<row>
+					<et2-description for="account_id" value="Accounts"></et2-description>
+					<et2-select-account id="account_id" multiple="true" emptyLabel="All"></et2-select-account>
+				</row>
+				<row>
+					<et2-tabbox  id="tabs" class="et2_nowrap" width="100%" span="all" tabHeight="240">
+						<tabs>
+							<tab id="prompt" label="Prompt"/>
+							<tab id="remarks" label="Notes"/>
+						</tabs>
+						<tabpanels>
+							<template id="aitools.prompt.prompt"/>
+							<template id="aitools.prompt.remarks"/>
+						</tabpanels>
+					</et2-tabbox>
+				</row>
+				<row disabled="!@id">
+					<et2-description  value="Last modified"></et2-description>
+					<et2-hbox  width="100%">
+						<et2-select-account  id="modifier" readonly="true"></et2-select-account>
+						<et2-date-time  id="modified" readonly="true" align="right"></et2-date-time>
+					</et2-hbox>
+				</row>
+				<row>
+					<et2-hbox  span="all" width="100%">
+						<et2-button  accesskey="s" label="Save" id="button[save]" hideOnReadonly="true"></et2-button>
+						<et2-button  label="Apply" id="button[apply]" hideOnReadonly="true"></et2-button>
+						<et2-button  label="Cancel" id="button[cancel]" onclick="window.close(); return false;" hideOnReadonly="true"></et2-button>
+						<et2-button  align="right" label="Delete" id="button[delete]" hideOnReadonly="true"
+							onclick="Et2Dialog.confirm(widget,'Do you really want to delete this prompt?','Delete')"></et2-button>
+					</et2-hbox>
+				</row>
+			</rows>
+		</grid>
+	</template>
+</overlay>
