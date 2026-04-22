@@ -12,12 +12,25 @@ import {EgwApp} from '../../api/js/jsapi/egw_app';
 import {app} from "../../api/js/jsapi/egw_global";
 import type {Et2Select} from "../../api/js/etemplate/Et2Select/Et2Select";
 import type {Et2Template} from "../../api/js/etemplate/Et2Template/Et2Template";
+import type {etemplate2} from "../../api/js/etemplate/etemplate2";
 
 /**
  * UI for EGroupware AI Assistant application
  */
 export class AIToolsApp extends EgwApp
 {
+	et2_ready(et2: etemplate2, name: string)
+	{
+		super.et2_ready(et2, name);
+
+		switch (name)
+		{
+			case 'aitools.prompts':
+				app.admin?.enableAppToolbar(et2, name);
+				break;
+		}
+	}
+
 	/**
 	 * AI model changed
 	 *
@@ -31,10 +44,10 @@ export class AIToolsApp extends EgwApp
 		if (!this.et2) this.et2 = _widget.getRoot();
 		const model = _ev.type === 'load' ? this.et2.getInputWidgetById('newsettings[ai_model]') : _widget;
 		const custom_model = this.et2.getWidgetById('newsettings[ai_custom_model]');
-		custom_model.hidden = model.value !== 'custom';
-		custom_model.required = model.value && model.value === 'custom';
+		custom_model.hidden = model?.value !== 'custom';
+		custom_model.required = model?.value && model.value === 'custom';
 		const custom_url = this.et2.getWidgetById('newsettings[ai_api_url]');
-		custom_url.required = model.value === 'custom';
+		custom_url.required = model?.value === 'custom';
 	}
 }
 

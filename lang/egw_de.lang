@@ -16,6 +16,7 @@ maximum number of tokens	aitools	de	Maximale Anzahl von Tokens
 meeting follow-up	aitools	de	Nachbereitung des Meetings
 missing ai configuration: api url or model!	common	de	Fehlende AI Konfiguration: API URL order Model!
 no models found, maybe endpoint not correctly configured!	common	de	Keine Modelle gefunden, evtl. ist der Endpunkt nicht korrekt konfiguriert!
+order	aitools	de	Abfolge
 please do not modify stock prompts, disable them instead and add your own.	aitools	de	Bitte die Standard Prompts NICHT ändern, sonder deaktivieren und eigene anlegen.
 processing stops without result(!), if this number of tokens is reached.	aitools	de	Die Verarbeitung wird ohne Ergebnis beendet (!), wenn diese Anzahl an Tokens erreicht ist.
 professional reply	aitools	de	Professionelle Antwort

@@ -18,8 +18,8 @@
 					<et2-description for="name" value="ID"></et2-description>
 					<et2-hbox>
 						<et2-textbox id="name" tabindex="1" maxlength="64" required="true"></et2-textbox>
-						<et2-checkbox id="disabled" label="Disabled" style="width: fit-content"></et2-checkbox>
-						<et2-number id="order" placeholder="order"></et2-number>
+						<et2-checkbox id="disabled" label="Disabled" style="flex: 0 0 auto"></et2-checkbox>
+						<et2-number id="order" placeholder="order" style="flex: 0 0 auto"></et2-number>
 					</et2-hbox>
 				</row>
 				<row>

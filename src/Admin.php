@@ -130,7 +130,19 @@ class Admin
 	 */
 	public function get_rows($query, ?array &$rows=null, ?array &$readonlys=null)
 	{
-		return $this->prompts->get_rows($query, $rows, $readonlys);
+		if (!empty($query['order']) && $query['order'] !== 'account_id' && !str_starts_with($query['order'], 'prompt_'))
+		{
+			$query['order'] = 'prompt_'.$query['order'];
+		}
+		$total = $this->prompts->get_rows($query, $rows, $readonlys);
+		foreach($rows as &$row)
+		{
+			if (!empty($row['disabled']))
+			{
+				$row['class'] = 'promptDisabled';
+			}
+		}
+		return $total;
 	}
 
 	/**
@@ -167,8 +179,11 @@ class Admin
 				Api\Framework::message($ex->getMessage(), 'error');
 			}
 		}
+		$sel_options = [
+			'disabled' => ['0' => 'Enabled', '1' => 'Disabled'],
+		];
 		$tmpl = new Api\Etemplate('aitools.prompts');
-		$tmpl->exec(self::APP.'.'.self::class.'.index', $content, [], [], ['nm' => $content['nm']]);
+		$tmpl->exec(self::APP.'.'.self::class.'.index', $content, $sel_options, [], ['nm' => $content['nm']]);
 	}
 
 	/**

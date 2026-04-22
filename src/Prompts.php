@@ -146,4 +146,35 @@ class Prompts extends Api\Storage\Base
 
 		return $ret;
 	}
+
+	/**
+	 * Searches DB for rows matching search-criteria
+	 * 
+	 * Reimplemented to correctly handle prompt_disabled filter of '0'=activated to match NULL and false (MariaDB/MySQL 0).
+	 *
+	 * @param array|string $criteria array of key and data cols, OR string with search pattern (incl. * or ? as wildcards)
+	 * @param boolean|string|array $only_keys True returns only keys, False returns all cols. or
+	 *    comma separated list or array of columns to return
+	 * @param string $order_by ='' field-names + {ASC|DESC} separated by colons ',', can also contain a GROUP BY (if it contains ORDER BY)
+	 * @param string|array $extra_cols ='' string or array of strings to be added to the SELECT, eg. "count(*) as num"
+	 * @param string $wildcard ='' appended befor and after each criteria
+	 * @param boolean $empty False=empty criteria are ignored in query, True=empty have to be empty in row
+	 * @param string $op ='AND' defaults to 'AND', can be set to 'OR' too, then criteria's are OR'ed together
+	 * @param mixed $start if != false, return only maxmatch rows beginning with start, or array($start,$num), or 'UNION' for a part of a union query
+	 * @param array $filter if set (!=null) col-data pairs, to be and-ed (!) into the query without wildcards
+	 * @param string $join sql to do a join, added as is after the table-name, eg. "JOIN table2 ON x=y" or
+	 *    "LEFT JOIN table2 ON (x=y AND z=o)", Note: there's no quoting done on $join, you are responsible for it!!!
+	 * @param boolean $need_full_no_count If true an unlimited query is run to determine the total number of rows, default false
+	 * @return array|NULL|true array of matching rows (the row is an array of the cols), NULL (nothing matched) or true (multiple union queries)
+	 * @return array|Api\Storage\Db2DataIterator|true|NULL
+	 */
+	public function &search($criteria, $only_keys = True, $order_by = '', $extra_cols = '', $wildcard = '', $empty = False, $op = 'AND', $start = false, $filter = null, $join = '', $need_full_no_count = false)
+	{
+		if (isset($filter['disabled']) && $filter['disabled'] === '0')
+		{
+			unset($filter['disabled']);
+			$filter[] = '(prompt_disabled IS NULL OR NOT prompt_disabled)';
+		}
+		return parent::search($criteria, $only_keys, $order_by, $extra_cols, $wildcard, $empty, $op, $start, $filter, $join, $need_full_no_count);
+	}
 }
