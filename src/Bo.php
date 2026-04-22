@@ -137,7 +137,7 @@ class Bo
 		$map = static fn($prompts) => array_map(static fn($prompt) => $return_prompt ? $prompt['text'] : [
 			'id' => $prompt['name'],
 			'label' => $prompt['label'],
-			'apps' => $prompt['apps'],
+			'apps' => $prompt['apps'] ? explode(',', $prompt['apps']) : null,
 		]+(isset($prompt['children']) ? ['children' => $prompt['children']] : []), $prompts);
 
 		if ($only_translation)
