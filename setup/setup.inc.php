@@ -10,7 +10,7 @@
  */
 
 $setup_info['aitools']['name']      = 'aitools';
-$setup_info['aitools']['version']   = '26.1.001';
+$setup_info['aitools']['version']   = '26.1.003';
 $setup_info['aitools']['app_order'] = 5;
 $setup_info['aitools']['tables']    = [];
 $setup_info['aitools']['enable']    = 5;        // hidden from navbar, but framework app without index

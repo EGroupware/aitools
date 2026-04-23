@@ -12,3 +12,6 @@
 // give only Defaults group run rights
 $defaultgroup = $GLOBALS['egw_setup']->add_account('Default', 'Default', 'Group', false, false);
 $GLOBALS['egw_setup']->add_acl('aitools', 'run', $defaultgroup);
+
+// add stock prompts
+aitools_egroupware_prompts();

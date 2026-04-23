@@ -41,6 +41,7 @@ class Hooks
 		{
 			$file = Array(
 				'Site Configuration' => Api\Egw::link('/index.php','menuaction=admin.admin_config.index&appname=' . $appname.'&ajax=true'),
+				'Customize prompts' => Api\Egw::link('/index.php','menuaction=aitools.'.Admin::class.'.index&ajax=true'),
 			);
 			if ($location == 'admin')
 			{
