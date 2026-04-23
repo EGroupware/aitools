@@ -14,4 +14,5 @@ $defaultgroup = $GLOBALS['egw_setup']->add_account('Default', 'Default', 'Group'
 $GLOBALS['egw_setup']->add_acl('aitools', 'run', $defaultgroup);
 
 // add stock prompts
+require_once __DIR__ . '/tables_update.inc.php';
 aitools_egroupware_prompts();
