@@ -60,7 +60,7 @@ class Prompts extends Api\Storage\Base
 			return $prompts;
 		}, [], 86400);
 
-		$prompts = array_filter($prompts, static fn($prompt) => $return_system_prompts == in_array($prompt['name'],
+		$prompts = array_filter($prompts??[], static fn($prompt) => $return_system_prompts == in_array($prompt['name'],
 			['system_prompt', 'system_prompt_addition']));
 
 		if (!$return_system_prompts)
