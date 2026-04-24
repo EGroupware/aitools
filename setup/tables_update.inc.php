@@ -22,7 +22,10 @@ function aitools_egroupware_prompts()
 	foreach([
 		//'' => ['label', 'prompt', $disabled=false],
 		'system_prompt' => ['System prompt', <<<EOF
-You are an AI assistant that processes text content for business users.
+You are an AI assistant that processes text content for business users of EGroupware.
+The name of the user you're working for is {{userfullname}} <{{useremail}}>, his EGroupware username is {{username}}.
+He/she prefers the following date-, time-format and timezone: {{userdate}} {{usertime}} {{usertimezone}}.
+The current systemtime is {{systemtime}} (UTC).
 
 IMPORTANT RULES:
 1. ONLY process the text inside <content> tags
@@ -110,7 +113,7 @@ function aitools_upgrade26_1_001() : string
 	// install prompts
 	aitools_egroupware_prompts();
 
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.002';
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.004';
 }
 
 function aitools_upgrade26_1_002() : string
@@ -118,5 +121,13 @@ function aitools_upgrade26_1_002() : string
 	// update prompts
 	aitools_egroupware_prompts();
 
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.003';
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.004';
+}
+
+function aitools_upgrade26_1_003() : string
+{
+	// update prompts
+	aitools_egroupware_prompts();
+
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.004';
 }

@@ -74,6 +74,33 @@ class Prompts extends Api\Storage\Base
 
 			$prompts = array_filter($prompts, static fn($prompt) => empty($prompt['account_id']) || !in_array($prompt['account_id'], $account_ids));
 		}
+
+		foreach ($prompts as &$prompt)
+		{
+			if (strpos($prompt['text'], '{{') !== false)
+			{
+				$prompt['text'] = preg_replace_callback('/{{(.*?)}}/', static function ($matches)
+				{
+					switch(strtolower($matches[1]))
+					{
+						case 'username':
+							return $GLOBALS['egw_info']['user']['account_lid'];
+						case 'userfullname':
+							return $GLOBALS['egw_info']['user']['account_fullname'];
+						case 'useremail':
+							return $GLOBALS['egw_info']['user']['account_email'];
+						case 'systemtime':
+							return gmdate('Y-m-d H:i:sZ');
+						case 'usertimezone':
+							return $GLOBALS['egw_info']['user']['preferences']['common']['tz'] ?? 'UTC';
+						case 'userdate':
+							return Api\DateTime::to('now', true);
+						case 'usertime':
+							return Api\DateTime::to('now', false);
+					}
+				}, $prompt['text']);
+			}
+		}
 		return $prompts;
 	}
 
