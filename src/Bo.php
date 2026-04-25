@@ -587,7 +587,7 @@ class Bo
 				],
 				[
 					'role'    => 'user',
-					'content' => $this->get_translation_prompts()[self::TRANSLATION_PROMPT_PREFIX.$target_lang] .
+					'content' => $this->get_translation_prompts()[self::TRANSLATION_PROMPT_PREFIX.$target_lang]['text'] .
 						"\n\n" . $wrapped_content
 				]
 			];
