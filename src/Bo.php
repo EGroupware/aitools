@@ -206,7 +206,7 @@ class Bo
 					$prompts[self::TRANSLATION_PROMPT_PREFIX . $code] = [
 						'name' => self::TRANSLATION_PROMPT_PREFIX . $code,
 						'label' => $all_langs[$code],
-					] + str_replace('{$lang}', $code, $template);
+					] + str_replace('{$lang}', $all_langs[$code], $template);
 				}
 			}
 		}
