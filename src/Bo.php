@@ -437,9 +437,9 @@ class Bo
 			'model' => $config['model'],
 			'messages' => $messages,
 			// Translation is deterministic - use low temperature for faster, more consistent results
-			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
+			'temperature' => $config['temperature'] ?? ($is_translation ? 0.1 : 0.7),
 			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
+			'max_tokens' => $config['max_tokens'] ?? ($is_translation ? 4000 : 10000),
 		];
 		if (isset($config['top_p']))
 		{
@@ -511,7 +511,7 @@ class Bo
 			switch($http_code)
 			{
 				case 403:   // Token budget is used up
-					$error_message = $detailed_error;
+					$error_message .= 'Usage limit reached. Please contact your administrator.';
 					break;
 				case 400:   // model not on price-list
 				case 456:   // over budget
@@ -587,7 +587,7 @@ class Bo
 				],
 				[
 					'role'    => 'user',
-					'content' => $this->get_translation_prompts()[self::TRANSLATION_PROMPT_PREFIX.$target_lang]['text'] .
+					'content' => ($this->get_translation_prompts()[self::TRANSLATION_PROMPT_PREFIX.$target_lang]['text'] ?? '') .
 						"\n\n" . $wrapped_content
 				]
 			];
@@ -712,7 +712,7 @@ class Bo
 				throw new \Exception('HTTP ' . $http_code . ': ' . $response);
 			}
 
-			$result = json_decode($response, true, JSON_THROW_ON_ERROR);
+			$result = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
 			return array_map(static fn($model) => $model['id'], $result['data'] ?? []);
 		}, [], 3600);
