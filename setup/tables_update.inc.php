@@ -131,18 +131,12 @@ function aitools_upgrade26_1_001() : string
 
 function aitools_upgrade26_1_002() : string
 {
-	// update prompts
-	aitools_egroupware_prompts();
-
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.004';
+	return aitools_upgrade26_1_004();
 }
 
 function aitools_upgrade26_1_003() : string
 {
-	// update prompts
-	aitools_egroupware_prompts();
-
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.004';
+	return aitools_upgrade26_1_004();
 }
 
 function aitools_upgrade26_1_004()
