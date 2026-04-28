@@ -23,7 +23,8 @@ $phpgw_baseline = array(
 			'prompt_remark' => array('type' => 'varchar','precision' => '2048','comment' => 'notes/remarks about the prompt'),
 			'prompt_modified' => array('type' => 'timestamp','nullable' => False,'default' => 'current_timestamp','comment' => 'when the prompt was last updated'),
 			'prompt_modifier' => array('type' => 'int','meta' => 'user','precision' => '4','nullable' => False,'comment' => '0: system, or account_id of updating user'),
-			'prompt_order' => array('type' => 'int', 'precision' => '1', 'comment' => 'order of the prompt'),
+			'prompt_order' => array('type' => 'int','precision' => '1','comment' => 'order of the prompt'),
+			'prompt_extra' => array('type' => 'ascii','meta' => 'json','precision' => '2048','comment' => 'JSON blob: model, reasoning, timeout, ...')
 		),
 		'pk' => array('prompt_id'),
 		'fk' => array(),

@@ -2,10 +2,53 @@
 <!DOCTYPE overlay PUBLIC "-//EGroupware GmbH//eTemplate 2.0//EN" "https://www.egroupware.org/etemplate2.0.dtd">
 <overlay>
 	<template id="aitools.prompt.prompt" template="" lang="" group="0" version="19.1.001">
-		<et2-textarea  id="text" rows="14" width="100%" required="true"></et2-textarea>
+		<et2-textarea  id="text" rows="18" width="100%" required="true"></et2-textarea>
+	</template>
+	<template id="aitools.prompt.overrides" template="" lang="" group="0" version="19.1">
+		<grid width="100%">
+			<columns>
+				<column width="100"/>
+				<column/>
+			</columns>
+			<rows>
+				<row>
+					<et2-description value="Overriding what's set in the AiTools app configuration" span="all"></et2-description>
+				</row>
+				<row>
+					<et2-description for="model" value="Model"></et2-description>
+					<et2-select id="model" placeholder="Default"
+						allowFreeEntries="true" searchUrl="EGroupware\AiTools\Bo::ajax_model_search"></et2-select>
+				</row>
+				<row>
+					<et2-description for="reasoning" value="Reasoning effort"></et2-description>
+					<et2-select id="reasoning" emptyLabel="Default">
+						<option value="none">None</option>
+						<option value="low">Low</option>
+						<option value="medium">Medium</option>
+						<option value="high">High</option>
+						<option value="xhigh">Extra high</option>
+					</et2-select>
+				</row>
+				<row>
+					<et2-description value="Maximum number of tokens"></et2-description>
+					<et2-hbox>
+						<et2-number id="max_tokens" placeholder="10000"></et2-number>
+						<et2-description value="Processing stops without result(!), if this number of tokens is reached."></et2-description>
+					</et2-hbox>
+				</row>
+				<row>
+					<et2-description for="timeout" value="Timeout"></et2-description>
+					<et2-number id="timeout" placeholder="Default"></et2-number>
+				</row>
+				<row>
+					<et2-description for="temperature" value="Temperature"></et2-description>
+					<et2-number id="temperature" placeholder="Default" min="0" max="1.0" step=".1"></et2-number>
+				</row>
+			</rows>
+		</grid>
 	</template>
 	<template id="aitools.prompt.remarks" template="" lang="" group="0" version="19.1.001">
-		<et2-textarea  id="remark" rows="14" width="100%"></et2-textarea>
+		<et2-textarea  id="remark" rows="18" width="100%"></et2-textarea>
 	</template>
 	<template id="aitools.prompt" template="" lang="" group="0" version="19.1">
 		<grid width="100%">
@@ -15,7 +58,7 @@
 			</columns>
 			<rows>
 				<row>
-					<et2-description for="name" value="ID"></et2-description>
+					<et2-description for="name" value="ID" statustext="IDs starting with 'aiassist.generate.' are placed in the 'Generate' sub-menu"></et2-description>
 					<et2-hbox>
 						<et2-textbox id="name" tabindex="1" maxlength="64" required="true"></et2-textbox>
 						<et2-checkbox id="disabled" label="Disabled" style="flex: 0 0 auto"></et2-checkbox>
@@ -38,10 +81,12 @@
 					<et2-tabbox  id="tabs" class="et2_nowrap" width="100%" span="all" tabHeight="240">
 						<tabs>
 							<tab id="prompt" label="Prompt"/>
+							<tab id="overrides" label="Overrides"/>
 							<tab id="remarks" label="Notes"/>
 						</tabs>
 						<tabpanels>
 							<template id="aitools.prompt.prompt"/>
+							<template id="aitools.prompt.overrides"/>
 							<template id="aitools.prompt.remarks"/>
 						</tabpanels>
 					</et2-tabbox>

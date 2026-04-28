@@ -27,11 +27,29 @@
 					<et2-password id="newsettings[ai_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
 				</row>
 				<row>
+					<et2-description for="newsettings[reasoning]" value="Reasoning effort" label="%s:"></et2-description>
+					<et2-select id="newsettings[reasoning]" emptyLabel="Default">
+						<option value="none">None</option>
+						<option value="low">Low</option>
+						<option value="medium">Medium</option>
+						<option value="high">High</option>
+						<option value="xhigh">Extra high</option>
+					</et2-select>
+				</row>
+				<row>
 					<et2-description value="Maximum number of tokens" label="%s:"></et2-description>
 					<et2-hbox>
 						<et2-number id="newsettings[max_tokens]" placeholder="10000"></et2-number>
 						<et2-description value="Processing stops without result(!), if this number of tokens is reached."></et2-description>
 					</et2-hbox>
+				</row>
+				<row>
+					<et2-description for="newsettings[timeout]" value="Timeout"></et2-description>
+					<et2-number id="newsettings[timeout]" placeholder="60"></et2-number>
+				</row>
+				<row>
+					<et2-description for="newsettings[temperature]" value="Temperature"></et2-description>
+					<et2-number id="newsettings[temperature]" placeholder="0.7" min="0" max="1.0" step=".1"></et2-number>
 				</row>
 				<row>
 					<et2-description value="deepl.com Configuration" span="all" class="subHeader"></et2-description>

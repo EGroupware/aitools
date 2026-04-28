@@ -12,17 +12,20 @@ namespace EGroupware\AiTools;
 
 use EGroupware\Api;
 
-class Prompts extends Api\Storage\Base
+class Prompts extends Api\Storage\Json
 {
 	const APP = 'aitools';
 	const TABLE = 'egw_ai_prompts';
+	const JSON_COLUMN = 'extra';    // without prefix!
 
 	/**
 	 * Constructor
 	 */
 	public function __construct()
 	{
-		parent::__construct(self::APP, self::TABLE, null, 'prompt_', true, 'object');
+		parent::__construct(self::APP, self::TABLE, self::JSON_COLUMN, null,
+			'prompt_', true, 'object',
+			'/^(model|reasoning|timeout|temperature|max_tokens)$/');
 
 		$this->convert_all_timestamps();
 	}
@@ -61,7 +64,7 @@ class Prompts extends Api\Storage\Base
 		}, [], 86400);
 
 		$prompts = array_filter($prompts??[], static fn($prompt) => $return_system_prompts == in_array($prompt['name'],
-			['system_prompt', 'system_prompt_addition']));
+			['system_prompt', 'system_prompt_addition', 'system_prompt_translate']));
 
 		if (!$return_system_prompts)
 		{
@@ -73,6 +76,33 @@ class Prompts extends Api\Storage\Base
 			$account_ids[] = $account_id;
 
 			$prompts = array_filter($prompts, static fn($prompt) => empty($prompt['account_id']) || !in_array($prompt['account_id'], $account_ids));
+		}
+
+		foreach ($prompts as &$prompt)
+		{
+			if (strpos($prompt['text'], '{{') !== false)
+			{
+				$prompt['text'] = preg_replace_callback('/{{(.*?)}}/', static function ($matches)
+				{
+					switch(strtolower($matches[1]))
+					{
+						case 'username':
+							return $GLOBALS['egw_info']['user']['account_lid'];
+						case 'userfullname':
+							return $GLOBALS['egw_info']['user']['account_fullname'];
+						case 'useremail':
+							return $GLOBALS['egw_info']['user']['account_email'];
+						case 'systemtime':
+							return gmdate('Y-m-d H:i:sZ');
+						case 'usertimezone':
+							return $GLOBALS['egw_info']['user']['preferences']['common']['tz'] ?? 'UTC';
+						case 'userdate':
+							return Api\DateTime::to('now', true);
+						case 'usertime':
+							return Api\DateTime::to('now', false);
+					}
+				}, $prompt['text']);
+			}
 		}
 		return $prompts;
 	}
@@ -90,13 +120,21 @@ class Prompts extends Api\Storage\Base
 	 * - system_prompt
 	 * - system_prompt_addition
 	 *
+	 * @param bool $translation true: system prompt for translation, false: system prompt for everything else
 	 * @return string
+	 * @throws \Exception if there is no system prompt
 	 */
-	public static function systemPrompt()
+	public static function systemPrompt(bool $translation=false) : string
 	{
 		$prompts = self::prompts(null, true);
 
-		return ($prompts['system_prompt']['text'] ?? '')."\n".($prompts['system_prompt_addition']['text'] ?? '');
+		if ($translation)
+		{
+			return $prompts['system_prompt_translate']['text'] ?? $prompts['system_prompt']['text'] ??
+				throw new \Exception('Missing system prompt!');
+		}
+		return ($prompts['system_prompt']['text'] ?? throw new \Exception('Missing system prompt!'))."\n".
+			($prompts['system_prompt_addition']['text'] ?? '');
 	}
 
 	/**
@@ -106,11 +144,12 @@ class Prompts extends Api\Storage\Base
 	 *
 	 * @return array|null
 	 */
-	public static function translationPromptTemplate()
+	public static function translationPromptTemplate(?array &$prompt=null) : ?string
 	{
 		$prompts = self::prompts();
+		$prompt = $prompts['aiassist.translate.custom'] ?? $prompts['aiassist.translate'];
 
-		return $prompts['aiassist.translate.custom'] ?? $prompts['aiassist.translate'] ?? null;
+		return $prompt['text'] ?? null;
 	}
 
 	/**

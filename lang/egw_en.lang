@@ -15,10 +15,12 @@ do you really want to delete this prompt?	aitools	en	Do you really want to delet
 enter custom api url	aitools	en	Enter custom API URL
 enter model name	aitools	en	Enter model name
 enter your api key	aitools	en	Enter your API key
+extra high	aitools	en	Extra high
 fix grammar & spelling	aitools	en	Fix grammar & spelling
 generate	aitools	en	Generate
 generate a subject	aitools	en	Generate a subject
 generating professional reply...	aitools	en	Generating professional reply...
+ids starting with 'aiassist.generate.' are placed in the 'generate' sub-menu	aitools	en	IDs starting with 'aiassist.generate.' are placed in the 'Generate' sub-menu
 insert after	aitools	en	Insert after
 insert before	aitools	en	Insert before
 invalid model %1, not supported by endpoint!	common	en	Invalid model %1, not supported by endpoint!
@@ -34,14 +36,20 @@ missing ai configuration: api url or model!	common	en	Missing AI configuration: 
 no models found, maybe endpoint not correctly configured!	common	en	No models found, maybe endpoint not correctly configured!
 no result received from ai	aitools	en	No result received from AI
 order	aitools	en	Order
+overrides	aitools	en	Overrides
+overriding what's set in the aitools app configuration	aitools	en	Overriding what's set in the AiTools app configuration
 please do not modify stock prompts, disable them instead and add your own.	aitools	en	Please do NOT modify stock prompts, disable them instead and add your own.
 processing stops without result(!), if this number of tokens is reached.	aitools	en	Processing stops without result(!), if this number of tokens is reached.
 professional reply	aitools	en	Professional reply
+reasoning effort	aitools	en	Reasoning effort
 summarize text	aitools	en	Summarize text
 summarizing your text...	aitools	en	Summarizing your text...
+temperature	aitools	en	Temperature
 text processed successfully	aitools	en	Text processed successfully
 thank you note	aitools	en	Thank you note
 this id is already in use!	aitools	en	This ID is already in use!
+timeout	aitools	en	Timeout
 translate	aitools	en	Translate
 translating to %1...	aitools	en	Translating to %1...
 translation languages	aitools	en	Translation languages
+usage limit reached. please contact your administrator.	aitools	en	Usage limit reached. Please contact your administrator.

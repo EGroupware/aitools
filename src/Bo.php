@@ -32,8 +32,6 @@ class Bo
 	 */
 	const MAX_CONTENT_LENGTH = 512000;
 
-	const PRESERVE_MARKUP = "\n- If the content contains HTML or markup you should use it in the response.  ";
-
 	/**
 	 * Prefix for all translation prompts (lang-code to be added to get the full prompt-id)
 	 */
@@ -73,22 +71,12 @@ class Bo
 		$prompts = $this->get_predefined_prompts();
 		
 		// Security: Sanitize prompt_id to prevent XSS in error messages
-		if (!isset($prompts[$prompt_id]))
+		if (empty($prompts[$prompt_id]['text']))
 		{
 			throw new \Exception('Unknown prompt ID: ' . htmlspecialchars($prompt_id, ENT_QUOTES, 'UTF-8'));
 		}
+		$prompt = $prompts[$prompt_id];
 		
-		// Get task-specific instruction
-		$task_instruction = $prompts[$prompt_id];
-
-		if($is_html)
-		{
-			$task_instruction .= self::PRESERVE_MARKUP;
-		}
-
-		// Security: Always wrap user content in XML tags for anti-injection protection
-		$wrapped_content = "<content>\n" . $content . "\n</content>";
-
 		// For other tasks: use full system prompt with all protections
 		$messages = [
 			[
@@ -97,15 +85,15 @@ class Bo
 			],
 			[
 				'role'    => 'user',
-				'content' => $task_instruction . "\n\n" . $wrapped_content
+				'content' => $prompt['text'] . "\n\n" . self::wrapContent($content)
 			]
 		];
 
 		// Call AI API with task-specific optimizations
-		$ai_response = $this->call_ai_api([], $messages, $prompt_id);
+		$ai_response = $this->call_ai_api($prompt, $messages, $prompt_id);
 
 		// Return just the processed content, not the full response structure
-		$response = $ai_response['content'] ?? $content;
+		$response = self::removeContentTags($ai_response['content']) ?? $content;
 
 		// either purify html or strip_tags plain-text response
 		// to guard gainst XSS via prompt injection and the like
@@ -122,7 +110,33 @@ class Bo
 			'usage'   => $ai_response['usage'] ?? null,
 		];
 	}
-	
+
+	/**
+	 * Wrap content in <content> tags
+	 *
+	 * Always wrap user content in XML tags for anti-injection protection.
+	 *
+	 * @param string $content
+	 * @return string
+	 */
+	public static function wrapContent(string $content) : string
+	{
+		return "<content>" . self::removeContentTags($content) . "</content>";
+	}
+
+	/**
+	 * Wrap content in <content> tags
+	 *
+	 * Always wrap user content in XML tags for anti-injection protection.
+	 *
+	 * @param string $content
+	 * @return string
+	 */
+	public static function removeContentTags(string $content) : string
+	{
+		return trim(preg_replace('#</?content.*?>#i', '', $content));
+	}
+
 	/**
 	 * Get predefined prompt templates
 	 *
@@ -134,10 +148,11 @@ class Bo
 	public function get_predefined_prompts(bool $return_prompt=true, bool $only_translation=false) : array
 	{
 		// return either just the prompt-text or id, label and apps
-		$map = static fn($prompts) => array_map(static fn($prompt) => $return_prompt ? $prompt['text'] : [
+		$map = static fn($prompts) => array_map(static fn($prompt) => $return_prompt ? $prompt : [
 			'id' => $prompt['name'],
 			'label' => $prompt['label'],
 			'apps' => $prompt['apps'] ? explode(',', $prompt['apps']) : null,
+			'timeout' => $prompt['timeout'] ?? self::get_ai_config()['timeout'] ?? ($only_translation ? 90 : 60),
 		]+(isset($prompt['children']) ? ['children' => $prompt['children']] : []), $prompts);
 
 		if ($only_translation)
@@ -174,13 +189,14 @@ class Bo
 	/**
 	 * Get translation prompts for major languages only
 	 *
+	 * @param ?array &$prompt on return full translation prompt incl. timeout and other overrides
 	 * @return array name => value pairs, see $return_prompt
 	 */
-	protected function get_translation_prompts() : array
+	protected function get_translation_prompts(?array &$prompt=null) : array
 	{
 		$prompts = [];
 		// Optimized prompt for faster translation - direct and concise
-		if (($template = Prompts::translationPromptTemplate()))
+		if (($template = Prompts::translationPromptTemplate($prompt)))
 		{
 			// Get user's preferred translation languages from preferences, always include user's language
 			$pref_langs = $GLOBALS['egw_info']['user']['preferences']['aitools']['languages'] ?? '';
@@ -206,7 +222,9 @@ class Bo
 					$prompts[self::TRANSLATION_PROMPT_PREFIX . $code] = [
 						'name' => self::TRANSLATION_PROMPT_PREFIX . $code,
 						'label' => $all_langs[$code],
-					] + str_replace('{$lang}', $all_langs[$code], $template);
+						'timeout' => $prompt['timeout'] ?? 90,
+						'text' => str_replace('{$lang}', $all_langs[$code], $template),
+					];
 				}
 			}
 		}
@@ -231,7 +249,9 @@ class Bo
 			'model'   => $model ?? $config['ai_custom_model'] ??
 				throw new Api\Exception(lang('Missing AI configuration: API URL or Model!')),
 			'provider' => $provider,
-			'max_tokens' => $config['ai_max_tokens'] ?? null,
+			'max_tokens' => $config['max_tokens'] ?? null,
+			'temperature' => $config['temperature'] ?? null,
+			'reasoning' => $config['reasoning'] ?? null,
 		];
 	}
 	
@@ -433,14 +453,15 @@ class Bo
 		// Optimize parameters based on task type
 		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
 		
-		$data = [
+		$data = array_filter([
 			'model' => $config['model'],
 			'messages' => $messages,
+			'reasoning' => $config['reasoning'],
 			// Translation is deterministic - use low temperature for faster, more consistent results
 			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
 			// Translations typically match input length - reduce tokens for faster processing
 			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
-		];
+		]);
 		if (isset($config['top_p']))
 		{
 			$data['top_p'] = $config['top_p'];
@@ -511,7 +532,7 @@ class Bo
 			switch($http_code)
 			{
 				case 403:   // Token budget is used up
-					$error_message = $detailed_error;
+					$error_message .= lang('Usage limit reached. Please contact your administrator.');
 					break;
 				case 400:   // model not on price-list
 				case 456:   // over budget
@@ -576,26 +597,22 @@ class Bo
 		}
 		else
 		{
-			// Security: Always wrap user content in XML tags for anti-injection protection
-			$wrapped_content = "<content>\n" . $content . "\n</content>";
-
 			$messages = [
 				[
 					'role'    => 'system',
-					'content' => 'You are a professional translator. ONLY process text inside <content> tags. Return ONLY the translated text, no explanations.' . PHP_EOL .
-						($is_html ? self::PRESERVE_MARKUP : "")
+					'content' => Prompts::systemPrompt(true),
 				],
 				[
 					'role'    => 'user',
-					'content' => $this->get_translation_prompts()[self::TRANSLATION_PROMPT_PREFIX.$target_lang]['text'] .
-						"\n\n" . $wrapped_content
+					'content' => $this->get_translation_prompts($prompt)[self::TRANSLATION_PROMPT_PREFIX.$target_lang]['text'] .
+						"\n\n" . self::wrapContent($content),
 				]
 			];
 			// Call AI API with task-specific optimizations
-			$response = $this->call_ai_api([], $messages, "aiassist.translate-" . $target_lang);
+			$response = $this->call_ai_api($prompt, $messages, "aiassist.translate-" . $target_lang);
 
 			// Return just the processed content, not the full response structure
-			$content = $response['content'] ?? $content;
+			$content = self::removeContentTags($response['content']) ?? $content;
 		}
 		return [
 			'content'     => $content,
@@ -712,7 +729,7 @@ class Bo
 				throw new \Exception('HTTP ' . $http_code . ': ' . $response);
 			}
 
-			$result = json_decode($response, true, JSON_THROW_ON_ERROR);
+			$result = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
 			return array_map(static fn($model) => $model['id'], $result['data'] ?? []);
 		}, [], 3600);
