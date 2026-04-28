@@ -116,6 +116,7 @@ function aitools_upgrade26_1_001() : string
 			'prompt_modified' => array('type' => 'timestamp','nullable' => False,'default' => 'current_timestamp','comment' => 'when the prompt was last updated'),
 			'prompt_modifier' => array('type' => 'int','meta' => 'user','precision' => '4','nullable' => False,'comment' => '0: system, or account_id of updating user'),
 			'prompt_order' => array('type' => 'int', 'precision' => '1', 'comment' => 'order of the prompt'),
+			'prompt_extra' => array('type' => 'ascii','meta' => 'json','precision' => '2048','comment' => 'JSON blob: model, reasoning, timeout, ...')
 		),
 		'pk' => array('prompt_id'),
 		'fk' => array(),
@@ -126,7 +127,7 @@ function aitools_upgrade26_1_001() : string
 	// install prompts
 	aitools_egroupware_prompts();
 
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.004';
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.005';
 }
 
 function aitools_upgrade26_1_002() : string
