@@ -38,6 +38,24 @@ IMPORTANT RULES:
 
 Your task will be specified before the content block.
 EOF],
+		'system_prompt_tools' => ['System prompt for tool-usage', <<<EOF
+CRITICAL WORKFLOW INSTRUCTIONS - FOLLOW THESE EXACTLY:
+1. ALWAYS execute tools immediately when requested - NEVER say 'I will' or 'Let me'
+2. For contact queries: Call searchContacts immediately
+3. ALWAYS call the tools and provide complete results in the SAME response
+4. When user asks multiple things, handle ALL requests in one response using multiple tool calls
+5. Present all results clearly with proper formatting
+6. If no results found, state clearly and offer next steps
+
+RESPONSE FORMAT:
+- always respond in the language of your user: "{{lang}}" {{language}}
+- if the content was using HTML and not just plain text, also respond in HTML
+- if you called a tool to create, update or delete an entry, do NOT return the unchanged content
+- show a header with what you did e.g.: Successfully created the following contact for you:
+- plus nicely and human readable the main points of the entry you created, modified or deleted
+- Use clear headings and formatting
+- Include all requested information in one comprehensive response
+EOF],
 		'system_prompt_addition'    => ['Added to system prompt', <<<EOF
 Add your additions to the system prompt here and remove the current content. They will be added after the system prompt.
 EOF, true], // disabled by default, meant for the admin to add something instance-specific, never updated
@@ -70,9 +88,10 @@ EOF, null, ['timeout' => 90, 'temperature' => 0.1, 'max_token' => 4000]],
 		'aiassist.generate.reply'     => ['Professional reply', 'Generate a professional email reply based on this content.'],
 		'aiassist.generate.followup'  => ['Meeting follow-up', 'Create a professional meeting follow-up message.'],
 		'aiassist.generate.thank_you' => ['Thank you note', 'Create a professional thank you note.'],
+		'aiassist.signature2contact'  => ['Create a contact from the signature', 'Find the signature of the mail and create a contact from it.', null, null, 'mail'],
 	] as $name => $data)
 	{
-		[$label, $prompt, $disabled, $extra] = $data + [null, null, null, null];
+		[$label, $prompt, $disabled, $extra, $apps] = $data + [null, null, null, null, null];
 		// do NOT update disabled prompts, as the admin might have enabled and changed them
 		if ($disabled === true && $db->select('egw_ai_prompts', 'COUNT(*)', ['prompt_name' => $name, 'prompt_disabled IS NOT NULL'],
 			__LINE__, __FILE__, false, '', 'aitools')->fetchColumn())
@@ -84,6 +103,7 @@ EOF, null, ['timeout' => 90, 'temperature' => 0.1, 'max_token' => 4000]],
 			'prompt_text' => $prompt,
 			'prompt_modified' => new Api\DateTime(),
 			'prompt_modifier' => 0,
+			'prompt_apps' => $apps,
 		]+(isset($disabled) ? [
 			'prompt_disabled' => $disabled,
 		] : [])+(isset($extra) ? [
@@ -152,5 +172,13 @@ function aitools_upgrade26_1_004()
 	// update prompts
 	aitools_egroupware_prompts();
 
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.005';
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.006';
+}
+
+function aitools_upgrade26_1_005() : string
+{
+	// update prompts
+	aitools_egroupware_prompts();
+
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.006';
 }

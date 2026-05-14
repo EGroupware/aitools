@@ -4,6 +4,9 @@
 	<template id="aitools.prompt.prompt" template="" lang="" group="0" version="19.1.001">
 		<et2-textarea  id="text" rows="18" width="100%" required="true"></et2-textarea>
 	</template>
+	<template id="aitools.prompt.tools" template="" lang="" group="0" version="19.1.001">
+		<et2-select id="tools" placeholder="None" multiple="true"></et2-select>
+	</template>
 	<template id="aitools.prompt.overrides" template="" lang="" group="0" version="19.1">
 		<grid width="100%">
 			<columns>
@@ -82,11 +85,13 @@
 						<tabs>
 							<tab id="prompt" label="Prompt"/>
 							<tab id="overrides" label="Overrides"/>
+							<tab id="tools" label="Tools"/>
 							<tab id="remarks" label="Notes"/>
 						</tabs>
 						<tabpanels>
 							<template id="aitools.prompt.prompt"/>
 							<template id="aitools.prompt.overrides"/>
+							<template id="aitools.prompt.tools"/>
 							<template id="aitools.prompt.remarks"/>
 						</tabpanels>
 					</et2-tabbox>

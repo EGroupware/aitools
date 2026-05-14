@@ -117,8 +117,11 @@ class Admin
 		$readonlys = [
 			'button[delete]' => empty($content['id']),
 		];
+		$sel_options = [
+			'tools' => Api\CalDAV\OpenAPI::operationIds(),
+		];
 		$tmpl = new Api\Etemplate(self::APP.'.prompt');
-		$tmpl->exec(self::APP.'.'.self::class.'.edit', $content, [], $readonlys, $content, 2);
+		$tmpl->exec(self::APP.'.'.self::class.'.edit', $content, $sel_options, $readonlys, $content, 2);
 	}
 
 	/**

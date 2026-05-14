@@ -81,7 +81,7 @@ class Bo
 		$messages = [
 			[
 				'role'    => 'system',
-				'content' => Prompts::systemPrompt(),
+				'content' => Prompts::systemPrompt(false, !empty($prompt['tools'])),
 			],
 			[
 				'role'    => 'user',
@@ -104,6 +104,12 @@ class Bo
 		else
 		{
 			$response = strip_tags($response);
+		}
+		// in case the response is in md --> html
+		if (preg_match('/\*\*.*\*\*', $response))
+		{
+			$response = str_replace(preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $response),
+				"\n", "<br/>\n");
 		}
 		return [
 			'content' => $response,
@@ -450,10 +456,20 @@ class Bo
 		// add what's not explicitly given from our config
 		$config += self::get_ai_config();
 
+		// check if tools are supported for this call
+		$tools = [];
+		if (!empty($config['tools']))
+		{
+			$tools = [
+				'tools' => Api\CalDAV\OpenAPI::tools($config['tools']),
+				'tool_choice' => 'auto',
+			];
+		}
+
 		// Optimize parameters based on task type
 		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
 		
-		$data = array_filter([
+		$data = array_filter($tools+[
 			'model' => $config['model'],
 			'messages' => $messages,
 			'reasoning' => $config['reasoning'],
@@ -574,21 +590,203 @@ class Bo
 			error_log('AI API response missing expected structure');
 			throw new \Exception('Unexpected response format from AI service.');
 		}
-		
-		$status = $this->openAiResponseStatus($result);
-		if(!$status['ok'])
+
+		$ai_message = $result['choices'][0]['message'] ?? null;
+
+		// Execute tools if requested and get a follow-up response
+		if (!empty($ai_message['tool_calls']) && !empty($config['tools']))
 		{
-			throw new \Exception($this->openAiResponseStatus($result)['message']);
+			error_log("AI Assistant Debug - Tool calls detected: " . count($ai_message['tool_calls']));
+
+			$tool_results = $this->execute_tools($ai_message['tool_calls']);
+
+			error_log("AI Assistant Debug - Tool results count: " . count($tool_results));
+
+			// Add the assistant's tool call message
+			$messages[] = [
+				'role' => 'assistant',
+				'content' => $ai_message['content'] ?? '',
+				'tool_calls' => $ai_message['tool_calls']
+			];
+
+			// Add tool results as tool messages
+			foreach ($tool_results as $tool_result)
+			{
+				$result_content = '';
+				if (isset($tool_result['result']['message']))
+				{
+					$result_content = $tool_result['result']['message'];
+					error_log("AI Assistant Debug - Tool result message: " . substr($result_content, 0, 200) . "...");
+				}
+				elseif (isset($tool_result['result']['success']) && $tool_result['result']['success'])
+				{
+					$result_content = 'Operation completed successfully';
+				}
+				elseif (isset($tool_result['result']['error']))
+				{
+					$result_content = 'Error: ' . $tool_result['result']['error'];
+				}
+				else
+				{
+					$result_content = json_encode($tool_result['result']);
+				}
+
+				$messages[] = [
+					'role' => 'tool',
+					'tool_call_id' => $tool_result['id'],
+					'content' => $result_content
+				];
+			}
+
+			// Make a second API call to get the AI's response incorporating the tool results
+			$follow_up_data = array_filter([
+				'model' => $config['model'],
+				'messages' => $messages,
+				'reasoning' => $config['reasoning'],
+				'temperature' => $config['temperature'] ?? 0.7,
+				'max_tokens' => $config['max_tokens'] ?? 10000,
+			]);
+
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/chat/completions');
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($follow_up_data));
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 60); // Increased timeout for follow-up
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+			$follow_up_response = curl_exec($ch);
+			$follow_up_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+
+			if ($follow_up_http_code === 200)
+			{
+				$follow_up_result = json_decode($follow_up_response, true);
+				if ($follow_up_result && isset($follow_up_result['choices'][0]['message']['content']))
+				{
+					// Use the follow-up response as the final content
+					$ai_message['content'] = $follow_up_result['choices'][0]['message']['content'];
+					error_log("AI Assistant Debug - Final AI response: " . substr($ai_message['content'], 0, 200) . "...");
+					// Update usage information if available
+					if (isset($follow_up_result['usage']))
+					{
+						$result['usage'] = $follow_up_result['usage'];
+					}
+				}
+				else
+				{
+					error_log("AI Assistant Debug - Follow-up response missing content");
+					// Fallback: create a response with tool results
+					$ai_message['content'] = $this->format_tool_results_fallback($tool_results);
+				}
+			}
+			else
+			{
+				error_log("AI Assistant Debug - Follow-up API call failed with code: " . $follow_up_http_code);
+				// Fallback: create a response with tool results
+				$ai_message['content'] = $this->format_tool_results_fallback($tool_results);
+			}
+
+			$ai_message['tool_calls'] = $tool_results;
+		}
+		else
+		{
+			$status = $this->openAiResponseStatus($result);
+			if (!$status['ok'])
+			{
+				throw new \Exception($this->openAiResponseStatus($result)['message']);
+			}
 		}
 
-		$ai_message = $result['choices'][0]['message'];
-		
 		return [
 			'content' => $ai_message['content'] ?? 'I processed your request.',
+			'tool_calls' => $ai_message['tool_calls'] ?? null,
 			'usage' => $result['usage'] ?? null
 		];
 	}
 
+	/**
+	 * Execute tool calls using EGroupware REST APIs
+	 */
+	private function execute_tools(array $tool_calls, array $tool_filter=[]) : array
+	{
+		$results = [];
+
+		foreach ($tool_calls as $tool_call)
+		{
+			$function_name = $tool_call['function']['name'];
+			$arguments = json_decode($tool_call['function']['arguments'], true);
+
+			try {
+				// Add timeout protection for each tool call
+				$start_time = microtime(true);
+
+				$result = Api\CalDAV\OpenAPI::toolCall($function_name, $arguments, $tool_filter);
+
+				$execution_time = round((microtime(true) - $start_time) * 1000);
+				error_log("AI Assistant Debug - Tool $function_name executed in {$execution_time}ms");
+
+				$results[] = [
+					'id' => $tool_call['id'],
+					'function' => $tool_call['function'],
+					'result' => $result
+				];
+
+			}
+			catch (\Throwable $e) {
+				error_log("AI Assistant Debug - Tool $function_name failed: " . $e->getMessage());
+				$results[] = [
+					'id' => $tool_call['id'],
+					'function' => $tool_call['function'],
+					'result' => ['error' => $e->getMessage()]
+				];
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Format tool results as fallback when AI follow-up fails
+	 */
+	protected function format_tool_results_fallback($tool_results)
+	{
+		$response = "Here are the results from your request:\n\n";
+
+		foreach ($tool_results as $tool_result)
+		{
+			$function_name = $tool_result['function']['name'] ?? 'Unknown';
+			$result = $tool_result['result'];
+
+			if (isset($result['message']) && is_string($result['message']))
+			{
+				$response .= $result['message'] . "\n\n";
+			}
+			elseif (isset($result['success']) && $result['success'])
+			{
+				$response .= "✅ $function_name completed successfully\n\n";
+			}
+			elseif (isset($result['error']))
+			{
+				$response .= "❌ Error in $function_name: " . $result['error'] . "\n\n";
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Process a translation prompt, either via DeepL or a LLM call
+	 *
+	 * @param $content
+	 * @param $target_lang
+	 * @param $source_lang
+	 * @param $context
+	 * @param $is_html
+	 * @return array
+	 * @throws DeepLException
+	 */
 	function translate($content, $target_lang, &$source_lang = null, $context = null, $is_html = null)
 	{
 		if(!empty(Api\Config::read(self::APP)['deepl_api_key']))

@@ -25,7 +25,7 @@ class Prompts extends Api\Storage\Json
 	{
 		parent::__construct(self::APP, self::TABLE, self::JSON_COLUMN, null,
 			'prompt_', true, 'object',
-			'/^(model|reasoning|timeout|temperature|max_tokens)$/');
+			'/^(model|reasoning|timeout|temperature|max_tokens|tools)$/');
 
 		$this->convert_all_timestamps();
 	}
@@ -63,8 +63,8 @@ class Prompts extends Api\Storage\Json
 			return $prompts;
 		}, [], 86400);
 
-		$prompts = array_filter($prompts??[], static fn($prompt) => $return_system_prompts == in_array($prompt['name'],
-			['system_prompt', 'system_prompt_addition', 'system_prompt_translate']));
+		$prompts = array_filter($prompts??[], static fn($prompt) =>
+			$return_system_prompts == str_starts_with($prompt['name'], 'system_prompt'));
 
 		if (!$return_system_prompts)
 		{
@@ -100,6 +100,11 @@ class Prompts extends Api\Storage\Json
 							return Api\DateTime::to('now', true);
 						case 'usertime':
 							return Api\DateTime::to('now', false);
+						case 'lang':
+							return $GLOBALS['egw_info']['user']['preferences']['common']['lang'];
+						case 'language':
+							return Api\Translation::get_installed_langs()[$GLOBALS['egw_info']['user']['preferences']['common']['lang']] ??
+								$GLOBALS['egw_info']['user']['preferences']['common']['lang'];
 					}
 				}, $prompt['text']);
 			}
@@ -121,10 +126,11 @@ class Prompts extends Api\Storage\Json
 	 * - system_prompt_addition
 	 *
 	 * @param bool $translation true: system prompt for translation, false: system prompt for everything else
+	 * @param bool $tools true: add "system_prompt_tools" to the system-prompt
 	 * @return string
 	 * @throws \Exception if there is no system prompt
 	 */
-	public static function systemPrompt(bool $translation=false) : string
+	public static function systemPrompt(bool $translation=false, bool $tools=false) : string
 	{
 		$prompts = self::prompts(null, true);
 
@@ -134,7 +140,8 @@ class Prompts extends Api\Storage\Json
 				throw new \Exception('Missing system prompt!');
 		}
 		return ($prompts['system_prompt']['text'] ?? throw new \Exception('Missing system prompt!'))."\n".
-			($prompts['system_prompt_addition']['text'] ?? '');
+			($prompts['system_prompt_addition']['text'] ?? '').
+			($tools && !empty($prompts['system_prompt_tools']['text']) ? "\n".$prompts['system_prompt_tools']['text']."\n" : '');
 	}
 
 	/**
