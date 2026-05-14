@@ -88,7 +88,8 @@ EOF, null, ['timeout' => 90, 'temperature' => 0.1, 'max_token' => 4000]],
 		'aiassist.generate.reply'     => ['Professional reply', 'Generate a professional email reply based on this content.'],
 		'aiassist.generate.followup'  => ['Meeting follow-up', 'Create a professional meeting follow-up message.'],
 		'aiassist.generate.thank_you' => ['Thank you note', 'Create a professional thank you note.'],
-		'aiassist.signature2contact'  => ['Create a contact from the signature', 'Find the signature of the mail and create a contact from it.', null, null, 'mail'],
+		'aiassist.signature2contact'  => ['Create a contact from the signature', 'Find the signature of the mail and create a contact from it.',
+			null, ["tools" => ["createContact"]], 'mail'],
 	] as $name => $data)
 	{
 		[$label, $prompt, $disabled, $extra, $apps] = $data + [null, null, null, null, null];
