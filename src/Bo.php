@@ -40,12 +40,12 @@ class Bo
 	/**
 	 * Process predefined prompts for text widgets
 	 * 
-	 * @param string $prompt_id The predefined prompt ID
+	 * @param string|array $prompt predefined prompt or it's ID
 	 * @param string $content The text content to process
 	 * @param array $options options including is_html
 	 * @return array The processed content and additional details
 	 */
-	public function process_predefined_prompt($prompt_id, $content, $options = [])
+	public function process_predefined_prompt($prompt, $content, $options = [])
 	{
 		if(!is_array($options))
 		{
@@ -54,9 +54,11 @@ class Bo
 		$is_html = $options['is_html'] ?? $options['is_markup'] ?? false;
 
 		// Security: Validate content length to prevent abuse
-		if (strlen($content) > self::MAX_CONTENT_LENGTH) {
+		if (strlen($content) > self::MAX_CONTENT_LENGTH)
+		{
 			throw new \Exception('Content too large. Maximum size is ' . (self::MAX_CONTENT_LENGTH / 1024) . ' KB.');
 		}
+		$prompt_id = $prompt['name'] ?? $prompt;
 		
 		// Check if this is a translation task for optimizations
 		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
@@ -66,17 +68,19 @@ class Bo
 			$source_lang = $options['source_lang'] ?? null;
 			return $this->translate($content, $target_lang, $source_lang, null, $is_html);
 		}
-		
-		// Define predefined prompts
-		$prompts = $this->get_predefined_prompts();
-		
-		// Security: Sanitize prompt_id to prevent XSS in error messages
-		if (empty($prompts[$prompt_id]['text']))
+
+		if (!is_array($prompt))
 		{
-			throw new \Exception('Unknown prompt ID: ' . htmlspecialchars($prompt_id, ENT_QUOTES, 'UTF-8'));
+			// get predefined prompts
+			$prompts = $this->get_predefined_prompts();
+
+			// Security: Sanitize prompt_id to prevent XSS in error messages
+			if (empty($prompts[$prompt_id]['text']))
+			{
+				throw new \Exception('Unknown prompt ID: ' . htmlspecialchars($prompt_id, ENT_QUOTES, 'UTF-8'));
+			}
+			$prompt = $prompts[$prompt_id];
 		}
-		$prompt = $prompts[$prompt_id];
-		
 		// For other tasks: use full system prompt with all protections
 		$messages = [
 			[
@@ -106,7 +110,7 @@ class Bo
 			$response = strip_tags($response);
 		}
 		// in case the response is in md --> html
-		if (preg_match('/\*\*.*\*\*', $response))
+		if (preg_match('/\*\*.*\*\*/', $response))
 		{
 			$response = str_replace(preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $response),
 				"\n", "<br/>\n");
@@ -157,7 +161,7 @@ class Bo
 		$map = static fn($prompts) => array_map(static fn($prompt) => $return_prompt ? $prompt : [
 			'id' => $prompt['name'],
 			'label' => $prompt['label'],
-			'apps' => $prompt['apps'] ? explode(',', $prompt['apps']) : null,
+			'apps' => !empty($prompt['apps']) ? explode(',', $prompt['apps']) : null,
 			'timeout' => $prompt['timeout'] ?? self::get_ai_config()['timeout'] ?? ($only_translation ? 90 : 60),
 		]+(isset($prompt['children']) ? ['children' => $prompt['children']] : []), $prompts);
 

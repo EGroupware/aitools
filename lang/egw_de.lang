@@ -1,10 +1,14 @@
 ai service configuration	aitools	de	KI Service-Konfiguration
 aitools	common	de	AI Tools
+context-menu	aitools	de	Kontextmenü
 create a contact from the signature	aitools	de	Lege aus der Signatur einen Kontakt an
 customize prompts	admin	de	Prompts anpassen
 deepl.com configuration	aitools	de	DeepL.com - Konfiguration
 delete this prompt(s)	aitools	de	Diese)n) Prompt(s) löschen
 do you really want to delete this prompt?	aitools	de	Wollen Sie diesen Prompt wirklich löschen?
+entry added	aitools	de	Eintrag hinzugefügt
+entry deleted	aitools	de	Eintrag gelöscht
+entry updated	aitools	de	Eintrag upgedated
 extra high	aitools	de	Extra hoch
 fix grammar & spelling	aitools	de	Grammatik & Rechtschreibung korrigieren
 generate	aitools	de	Generiere
@@ -30,6 +34,8 @@ summarize text	aitools	de	Text zusammenfassen
 temperature	aitools	de	Temperatur
 thank you note	aitools	de	Dankschreiben
 this id is already in use!	aitools	de	Diese ID ist Bereits in Benutzung!
+tools	aitools	de	Werkzeuge
 translate	aitools	de	Übersetzen
 translation languages	aitools	de	Übersetzungssprachen
+triggers	aitools	de	Trigger
 usage limit reached. please contact your administrator.	aitools	de	Maximale Nutzung / Tokenlimit erreicht. Bitte benachrichtigen Sie Ihren Administrator.

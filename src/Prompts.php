@@ -11,6 +11,7 @@
 namespace EGroupware\AiTools;
 
 use EGroupware\Api;
+use EGroupware\Api\Exception\WrongParameter;
 
 class Prompts extends Api\Storage\Json
 {
@@ -25,7 +26,7 @@ class Prompts extends Api\Storage\Json
 	{
 		parent::__construct(self::APP, self::TABLE, self::JSON_COLUMN, null,
 			'prompt_', true, 'object',
-			'/^(model|reasoning|timeout|temperature|max_tokens|tools)$/');
+			'/^(model|reasoning|timeout|temperature|max_tokens|tools|triggers)$/');
 
 		$this->convert_all_timestamps();
 	}
@@ -75,7 +76,8 @@ class Prompts extends Api\Storage\Json
 			$account_ids = Api\Accounts::getInstance()->memberships($account_id, true);
 			$account_ids[] = $account_id;
 
-			$prompts = array_filter($prompts, static fn($prompt) => empty($prompt['account_id']) || !in_array($prompt['account_id'], $account_ids));
+			$prompts = array_filter($prompts, static fn($prompt) => (empty($prompt['account_id']) || array_intersect($prompt['account_id'], $account_ids)) &&
+				empty($prompt['triggers']) || in_array('menu', $prompt['triggers']));
 		}
 
 		foreach ($prompts as &$prompt)
@@ -110,6 +112,34 @@ class Prompts extends Api\Storage\Json
 			}
 		}
 		return $prompts;
+	}
+
+	public function db2data($data = null)
+	{
+		if (($intern = !is_array($data)))
+		{
+			$data = &$this->data;
+		}
+		$data = parent::db2data($intern ? null : $data);
+
+		$data['account_id'] = empty($data['account_id']) ? null : explode(',', $data['account_id']);
+
+		return $data;
+	}
+
+	public function data2db($data = null)
+	{
+		if (($intern = !is_array($data)))
+		{
+			$data = &$this->data;
+		}
+		$data = parent::data2db($intern ? null : $data);
+
+		if (array_key_exists('account_id', $data))
+		{
+			$data['account_id'] = empty($data['account_id']) ? null : implode(',', $data['account_id']);
+		}
+		return $data;
 	}
 
 	/**
@@ -190,7 +220,28 @@ class Prompts extends Api\Storage\Json
 
 		self::invalidate();
 
+		self::updateTriggers($this->data['id'], $this->data['triggers'] ?? [], $this->data['apps'] ?? []);
+
 		return $ret;
+	}
+
+	/**
+	 * Reimplement delete to update triggers
+	 *
+	 * @param int|int[] $keys
+	 * @param bool $only_return_query
+	 * @return array|int
+	 */
+	public function delete($keys=null, $only_return_query=false)
+	{
+		if (!$only_return_query)
+		{
+			foreach($keys['id'] ?? (array)$keys as $id)
+			{
+				self::updateTriggers($id);
+			}
+		}
+		return parent::delete($keys, $only_return_query);
 	}
 
 	/**
@@ -222,5 +273,59 @@ class Prompts extends Api\Storage\Json
 			$filter[] = '(prompt_disabled IS NULL OR NOT prompt_disabled)';
 		}
 		return parent::search($criteria, $only_keys, $order_by, $extra_cols, $wildcard, $empty, $op, $start, $filter, $join, $need_full_no_count);
+	}
+
+	/**
+	 * Optimized check if we have prompts with a trigger for the given app and trigger-type
+	 *
+	 * @param string $app app-name
+	 * @param string $type "add", "edit" or "delete"
+	 * @return int[] prompt-ids
+	 */
+	public static function checkTriggers(string $app, string $type) : array
+	{
+		$triggers = Api\Config::read(self::APP)['enabled_triggers'] ?? [];
+
+		return array_merge($triggers[$type][$app] ?? [], $triggers[$type]['all'] ?? []);
+	}
+
+	/**
+	 * Update enabled_triggers config to be able to react on triggers without having to query all prompts
+	 *
+	 * @param int $_prompt_id
+	 * @param array $_types
+	 * @param array $_apps
+	 * @return void
+	 */
+	public static function updateTriggers(int $_prompt_id, array $_types=[], array $_apps=[]) : void
+	{
+		$triggers = $old_value = Api\Config::read(self::APP)['enabled_triggers'] ?? [];
+
+		// remove $prompt_id from all triggers
+		foreach($triggers as $type => &$apps)
+		{
+			foreach($apps as $app => &$ids)
+			{
+				if (($key = array_search($_prompt_id, $ids)) !== false)
+				{
+					unset($ids[$key]);
+				}
+			}
+		}
+		// if $_add add prompt_id to triggers
+		foreach ($_types as $type)
+		{
+			$triggers[$type] ??= [];
+			foreach ($_apps ?: ['all'] as $app)
+			{
+				$triggers[$type][$app] ??= [];
+				$triggers[$type][$app][] = $_prompt_id;
+			}
+		}
+		// if there's a change, store it
+		if ($triggers != $old_value)
+		{
+			Api\Config::save_value('enabled_triggers', $triggers, self::APP);
+		}
 	}
 }

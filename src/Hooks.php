@@ -12,6 +12,7 @@
 namespace EGroupware\AiTools;
 
 use EGroupware\Api;
+use EGroupware\Timesheet\JsTimesheet;
 
 
 /**
@@ -167,5 +168,66 @@ class Hooks
 				'default'    => 'en,de,fr,it,es-es',
 			]
 		];
+	}
+
+	/**
+	 * Hook called by Api\Links::notify method of changes in entries of all apps
+	 *
+	 * @param array $data
+	 */
+	public static function notifyAll(array $data)
+	{
+		// return if no type is specified, or no trigger for that type & app configured
+		if (empty($data['type']) || $data['type'] === 'unknown' ||
+			!($prompt_ids = Prompts::checkTriggers($data['app'], $data['type'] === 'edit' ? 'update' : $data['type'])))
+		{
+			return;
+		}
+		$account_ids = Api\Accounts::getInstance()->memberships($GLOBALS['egw_info']['user']['account_id'], true);
+		$account_ids[] = $GLOBALS['egw_info']['user']['account_id'];
+
+		// convert internal data to REST API representation, if we have a specific JS object
+		switch($data['app'])
+		{
+			case 'infolog':
+				$data['data'] = Api\CalDAV\JsCalendar::JsTask($data['data'], false);
+				break;
+			case 'calendar':
+				$data['data'] = Api\CalDAV\JsCalendar::JsEvent($data['data'], false);
+				break;
+			case 'addressbook':
+				$data['data'] = Api\Contacts\JsContact::getJsCard($data['data'], false);
+				break;
+			case 'timesheet':
+				$data['data'] = \EGroupware\Timesheet\JsTimesheet::JsTimesheet($data['data'], false);
+				break;
+			case 'invoices':
+				$data['data'] = \EGroupware\Invoices\JsObjects::JsInvoice($data['data'], false);
+				break;
+			case 'projectmanager':
+				$data['data'] = \EGroupware\Projectmanager\JsObjects::JsProject($data['data'], false);
+				break;
+			case 'smallpart':
+				$data['data'] = \EGroupware\SmallParT\JsObjects::JsCourse($data['data'], false);
+				break;
+		}
+
+		// run prompt(s)
+		foreach($prompt_ids as $prompt_id)
+		{
+			$prompts ??= new Prompts();
+			try {
+				if (($prompt = $prompts->read($prompt_id)) &&
+					(empty($prompt['account_id']) || array_intersect($account_ids, $prompt['account_id'])))
+				{
+					$bo ??= new Bo();
+					$result = $bo->process_predefined_prompt($prompt, json_encode($data));
+					error_log(__METHOD__.'('.json_encode($data).') prompt #'.$prompt_id.': '.json_encode($result));
+				}
+			}
+			catch (\Throwable $e) {
+				_egw_log_exception($e);
+			}
+		}
 	}
 }
