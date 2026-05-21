@@ -94,7 +94,7 @@ class Bo
 		];
 
 		// Call AI API with task-specific optimizations
-		$ai_response = $this->call_ai_api($prompt, $messages, $prompt_id);
+		$ai_response = $this->call_ai_api($prompt, $messages, $is_translation);
 
 		// Return just the processed content, not the full response structure
 		$response = self::removeContentTags($ai_response['content']) ?? $content;
@@ -453,48 +453,25 @@ class Bo
 	}
 
 	/**
-	 * Call AI API
+	 * Chat completion request
+	 *
+	 * @param array $data data to send as JSON
+	 * @param array $config
+	 * @param array|null &$usage on return usage information
+	 * @param bool $is_translation
+	 * @return array result or for $path === '/chat/completion' $result['choices'][0]['message']
+	 * @throws \Exception
 	 */
-	protected function call_ai_api(array $config, array $messages, ?string $prompt_id = '')
+	protected function chatCompletions(array $data, array $config, ?array &$usage=null, bool $is_translation=false)
 	{
-		// add what's not explicitly given from our config
-		$config += self::get_ai_config();
-
-		// check if tools are supported for this call
-		$tools = [];
-		if (!empty($config['tools']))
-		{
-			$tools = [
-				'tools' => Api\CalDAV\OpenAPI::tools($config['tools']),
-				'tool_choice' => 'auto',
-			];
-		}
-
-		// Optimize parameters based on task type
-		$is_translation = str_starts_with($prompt_id, self::TRANSLATION_PROMPT_PREFIX);
-		
-		$data = array_filter($tools+[
-			'model' => $config['model'],
-			'messages' => $messages,
-			'reasoning' => $config['reasoning'],
-			// Translation is deterministic - use low temperature for faster, more consistent results
-			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
-			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
-		]);
-		if (isset($config['top_p']))
-		{
-			$data['top_p'] = $config['top_p'];
-		}
-		
 		// Security: Sanitize API key to prevent HTTP header injection
 		$safe_api_key = preg_replace('/[\r\n]/', '', $config['api_key']);
-		
+
 		$headers = [
 			'Content-Type: application/json',
 			'Authorization: Bearer ' . $safe_api_key
 		];
-		
+
 		// Make API request
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/chat/completions');
@@ -503,25 +480,24 @@ class Bo
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		// Translation tasks get longer timeout due to processing complexity
-		curl_setopt($ch, CURLOPT_TIMEOUT, $is_translation ? 90 : 60);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $config['timeout'] ?? $is_translation ? 90 : 6060);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // Connection timeout
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 		// Enable HTTP/1.1 keep-alive for faster subsequent requests
 		curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 		// Disable Expect: 100-continue header for faster POST requests
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers, ['Expect:']));
-		
+
 		$response = curl_exec($ch);
 		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		$content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 		$curl_error = curl_error($ch);
 		curl_close($ch);
-		
+
 		if ($curl_error)
 		{
 			throw new \Exception('API request failed: ' . $curl_error);
 		}
-		
 		if ($http_code !== 200)
 		{
 			$error_details = '';
@@ -530,7 +506,7 @@ class Bo
 				$error_response = json_decode($response, true);
 				$error_details = $error_response['messages']['message'] ?? $error_response['error']['message'] ?? $response;
 			}
-			
+
 			// Security: Log detailed errors but show generic message to users
 			// Skip verbose logging for faster error handling
 			if ($error_details || !$is_translation)
@@ -546,7 +522,7 @@ class Bo
 				}
 				error_log($detailed_error);
 			}
-			
+
 			// User-friendly messages without exposing internal details
 			$error_message = 'AI service request failed. ';
 			switch($http_code)
@@ -574,146 +550,170 @@ class Bo
 					$error_message .= 'Please contact your administrator.';
 					break;
 			}
-			
+
 			throw new \Exception($error_message, $http_code);
 		}
-		
+
 		// Security: Validate response content type
-		if ($content_type && strpos($content_type, 'application/json') === false) {
+		if ($content_type && strpos($content_type, 'application/json') === false)
+		{
 			error_log('Unexpected content type from AI API: ' . $content_type);
 			throw new \Exception('Invalid response format from AI service.');
 		}
-		
+
 		$result = json_decode($response, true);
-		if (!$result || !is_array($result)) {
+		if (!$result || !is_array($result))
+		{
 			error_log('Failed to decode AI API response: ' . substr($response, 0, 200));
 			throw new \Exception('Invalid response from AI service.');
 		}
-		
-		if (!isset($result['choices'][0]['message'])) {
+
+		// aggregate usage
+		$usage ??= [];
+		foreach($result['usage'] ?? [] as $key => $value)
+		{
+			if (!isset($usage[$key]) || !is_numeric($value))
+			{
+				$usage[$key] = $value;
+			}
+			else
+			{
+				$usage[$key] += $value;
+			}
+		}
+
+		if (!isset($result['choices'][0]['message']))
+		{
 			error_log('AI API response missing expected structure');
 			throw new \Exception('Unexpected response format from AI service.');
 		}
 
 		$ai_message = $result['choices'][0]['message'] ?? null;
-
-		// Execute tools if requested and get a follow-up response
-		if (!empty($ai_message['tool_calls']) && !empty($config['tools']))
-		{
-			error_log("AI Assistant Debug - Tool calls detected: " . count($ai_message['tool_calls']));
-
-			$tool_results = $this->execute_tools($ai_message['tool_calls']);
-
-			error_log("AI Assistant Debug - Tool results count: " . count($tool_results));
-
-			// Add the assistant's tool call message
-			$messages[] = [
-				'role' => 'assistant',
-				'content' => $ai_message['content'] ?? '',
-				'tool_calls' => $ai_message['tool_calls']
-			];
-
-			// Add tool results as tool messages
-			foreach ($tool_results as $tool_result)
-			{
-				$result_content = '';
-				if (isset($tool_result['result']['message']))
-				{
-					$result_content = $tool_result['result']['message'];
-					error_log("AI Assistant Debug - Tool result message: " . substr($result_content, 0, 200) . "...");
-				}
-				elseif (isset($tool_result['result']['success']) && $tool_result['result']['success'])
-				{
-					$result_content = 'Operation completed successfully';
-				}
-				elseif (isset($tool_result['result']['error']))
-				{
-					$result_content = 'Error: ' . $tool_result['result']['error'];
-				}
-				else
-				{
-					$result_content = json_encode($tool_result['result']);
-				}
-
-				$messages[] = [
-					'role' => 'tool',
-					'tool_call_id' => $tool_result['id'],
-					'content' => $result_content
-				];
-			}
-
-			// Make a second API call to get the AI's response incorporating the tool results
-			$follow_up_data = array_filter([
-				'model' => $config['model'],
-				'messages' => $messages,
-				'reasoning' => $config['reasoning'],
-				'temperature' => $config['temperature'] ?? 0.7,
-				'max_tokens' => $config['max_tokens'] ?? 10000,
-			]);
-
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/chat/completions');
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($follow_up_data));
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 60); // Increased timeout for follow-up
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-
-			$follow_up_response = curl_exec($ch);
-			$follow_up_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-			curl_close($ch);
-
-			if ($follow_up_http_code === 200)
-			{
-				$follow_up_result = json_decode($follow_up_response, true);
-				if ($follow_up_result && isset($follow_up_result['choices'][0]['message']['content']))
-				{
-					// Use the follow-up response as the final content
-					$ai_message['content'] = $follow_up_result['choices'][0]['message']['content'];
-					error_log("AI Assistant Debug - Final AI response: " . substr($ai_message['content'], 0, 200) . "...");
-					// Update usage information if available
-					if (isset($follow_up_result['usage']))
-					{
-						$result['usage'] = $follow_up_result['usage'];
-					}
-				}
-				else
-				{
-					error_log("AI Assistant Debug - Follow-up response missing content");
-					// Fallback: create a response with tool results
-					$ai_message['content'] = $this->format_tool_results_fallback($tool_results);
-				}
-			}
-			else
-			{
-				error_log("AI Assistant Debug - Follow-up API call failed with code: " . $follow_up_http_code);
-				// Fallback: create a response with tool results
-				$ai_message['content'] = $this->format_tool_results_fallback($tool_results);
-			}
-
-			$ai_message['tool_calls'] = $tool_results;
-		}
-		else
+		if (empty($ai_message['tool_calls']) || empty($config['tools']))
 		{
 			$status = $this->openAiResponseStatus($result);
+
 			if (!$status['ok'])
 			{
 				throw new \Exception($this->openAiResponseStatus($result)['message']);
 			}
 		}
 
+		return $ai_message;
+	}
+
+	/**
+	 * Call AI API
+	 *
+	 * @param array $config config values for keys "api_url", "api_key", "model", "tools", "reasoning", "temperature", "max_tokens", "top_p"
+	 * @param array $messages
+	 * @param bool $is_translation
+	 * @return array values for keys "content", "tool_calls", "usage"
+	 */
+	protected function call_ai_api(array $config, array $messages, bool $is_translation=false)
+	{
+		// add what's not explicitly given from our config
+		$config += self::get_ai_config();
+
+		// check if tools are supported for this call
+		$tools = [];
+		if (!empty($config['tools']))
+		{
+			$tools = [
+				'tools' => Api\CalDAV\OpenAPI::tools($config['tools']),
+				'tool_choice' => 'auto',
+			];
+		}
+
+		$data = array_filter($tools+[
+			'model' => $config['model'],
+			'messages' => $messages,
+			'reasoning' => $config['reasoning'],
+			// Translation is deterministic - use low temperature for faster, more consistent results
+			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
+			// Translations typically match input length - reduce tokens for faster processing
+			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
+		]);
+		if (isset($config['top_p']))
+		{
+			$data['top_p'] = $config['top_p'];
+		}
+
+		// loop for tool-calls
+		$max_calls = 5;
+		do
+		{
+			$ai_message = $this->chatCompletions($data, $config, $usage, $is_translation);
+
+			// Execute tools if requested and get a follow-up response
+			if (!empty($ai_message['tool_calls']) && !empty($config['tools']))
+			{
+				error_log("AI Assistant Debug - Tool calls detected: " . count($ai_message['tool_calls']));
+
+				$tool_results = $this->execute_tools($ai_message['tool_calls'], $config['tools']);
+
+				error_log("AI Assistant Debug - Tool results count: " . count($tool_results));
+
+				// Add the assistant's tool call message
+				$messages[] = [
+					'role' => 'assistant',
+					'content' => $ai_message['content'] ?? '',
+					'tool_calls' => $ai_message['tool_calls']
+				];
+
+				// Add tool results as tool messages
+				foreach ($tool_results as $tool_result)
+				{
+					$result_content = '';
+					if (isset($tool_result['result']['message']))
+					{
+						$result_content = $tool_result['result']['message'];
+						error_log("AI Assistant Debug - Tool result message: " . substr($result_content, 0, 1024) . "...");
+					}
+					elseif (isset($tool_result['result']['success']) && $tool_result['result']['success'])
+					{
+						$result_content = 'Operation completed successfully';
+					}
+					elseif (isset($tool_result['result']['error']))
+					{
+						$result_content = 'Error: ' . $tool_result['result']['error'];
+					}
+					else
+					{
+						$result_content = json_encode($tool_result['result']);
+					}
+
+					$messages[] = [
+						'role' => 'tool',
+						'tool_call_id' => $tool_result['id'],
+						'content' => $result_content,
+					];
+				}
+				$ai_message['tool_calls'] = $tool_results;
+
+				// Make a second API call to get the AI's response incorporating the tool results
+				$data = array_filter([
+					'model' => $config['model'],
+					'messages' => $messages,
+					'reasoning' => $config['reasoning'],
+					'temperature' => $config['temperature'] ?? 0.7,
+					'max_tokens' => $config['max_tokens'] ?? 10000,
+				]);
+			}
+		}
+		while ($max_calls-- > 0 && !empty($ai_message['tool_calls']) && !empty($config['tools']));
+
 		return [
 			'content' => $ai_message['content'] ?? 'I processed your request.',
 			'tool_calls' => $ai_message['tool_calls'] ?? null,
-			'usage' => $result['usage'] ?? null
+			'usage' => $usage ?? null
 		];
 	}
 
 	/**
 	 * Execute tool calls using EGroupware REST APIs
 	 */
-	private function execute_tools(array $tool_calls, array $tool_filter=[]) : array
+	private function execute_tools(array $tool_calls, ?array $tool_filter=null) : array
 	{
 		$results = [];
 
@@ -726,7 +726,7 @@ class Bo
 				// Add timeout protection for each tool call
 				$start_time = microtime(true);
 
-				$result = Api\CalDAV\OpenAPI::toolCall($function_name, $arguments, $tool_filter);
+				$result = Api\CalDAV\OpenAPI::toolCall($function_name, $arguments, $tool_filter??[], !isset($tool_filter));
 
 				$execution_time = round((microtime(true) - $start_time) * 1000);
 				error_log("AI Assistant Debug - Tool $function_name executed in {$execution_time}ms");
@@ -811,7 +811,7 @@ class Bo
 				]
 			];
 			// Call AI API with task-specific optimizations
-			$response = $this->call_ai_api($prompt, $messages, "aiassist.translate-" . $target_lang);
+			$response = $this->call_ai_api($prompt, $messages, true);
 
 			// Return just the processed content, not the full response structure
 			$content = self::removeContentTags($response['content']) ?? $content;

@@ -88,8 +88,13 @@ EOF, null, ['timeout' => 90, 'temperature' => 0.1, 'max_token' => 4000]],
 		'aiassist.generate.reply'     => ['Professional reply', 'Generate a professional email reply based on this content.'],
 		'aiassist.generate.followup'  => ['Meeting follow-up', 'Create a professional meeting follow-up message.'],
 		'aiassist.generate.thank_you' => ['Thank you note', 'Create a professional thank you note.'],
-		'aiassist.signature2contact'  => ['Create a contact from the signature', 'Find the signature of the mail and create a contact from it.',
-			null, ["tools" => ["createContact"]], 'mail'],
+		'aiassist.signature2contact'  => ['Create a contact from the signature', <<<EOF
+Find the signature of the mail and extract the contact data.
+IMPORTANT: Always search for an existing contact with same email address and name first, BEFORE creating a new contact!
+If the contact already exists, update missing data, if not add it as new contact.
+Return a nicely formatted message in the users language of what you added or updated.		
+EOF,
+			null, ['tools' => ['searchContacts', 'updateContact', 'createContact']], 'mail'],
 	] as $name => $data)
 	{
 		[$label, $prompt, $disabled, $extra, $apps] = $data + [null, null, null, null, null];
@@ -170,16 +175,18 @@ function aitools_upgrade26_1_004()
 		'comment' => 'JSON blob: model, reasoning, timeout, ...'
 	));
 
-	// update prompts
-	aitools_egroupware_prompts();
-
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.006';
+	return aitools_upgrade26_1_006();
 }
 
 function aitools_upgrade26_1_005() : string
 {
+	return aitools_upgrade26_1_006();
+}
+
+function aitools_upgrade26_1_006() : string
+{
 	// update prompts
 	aitools_egroupware_prompts();
 
-	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.006';
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.007';
 }
