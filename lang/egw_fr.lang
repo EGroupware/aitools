@@ -1,19 +1,49 @@
+ai api key	aitools	fr	IA : Clé d'API
+ai api url	aitools	fr	IA : URL d'API
+ai model provider	aitools	fr	Fournisseur de modèle d'IA
+ai processing failed	aitools	fr	Erreur lors de l’exécution de l'IA
 ai service configuration	aitools	fr	Configuration du service AI
+ai tools are processing...	aitools	fr	Outils d'IA en cours d’exécution ...
 aitools	common	fr	Outils d'IA
+checking grammar and spelling...	aitools	fr	Vérifier l'orthographe et la grammaire ...
+composing thank you note...	aitools	fr	Écrire un remerciement ...
+creating meeting follow-up...	aitools	fr	Écrire un compte rendu de réunion ...
+customize prompts	admin	fr	Personnaliser les prompts
 deepl.com configuration	aitools	fr	Configuration DeepL.com
+delete this prompt(s)	aitools	fr	Supprimer ce(s) prompt(s)
+do you really want to delete this prompt?	aitools	fr	Voulez vous vraiment supprimer ce prompt ?
+enter custom api url	aitools	fr	Saisir votre URL d'API
+enter model name	aitools	fr	Saisir le nom du modèle
+enter your api key	aitools	fr	Saisir votre clé d'API
 fix grammar & spelling	aitools	fr	Corriger la grammaire et l'orthographe
 generate	aitools	fr	Générer
 generate a subject	aitools	fr	Générer un sujet
+generating professional reply...	aitools	fr	Écrire une réponse de manière professionnelle ...
 insert after	aitools	fr	Insérer après
 insert before	aitools	fr	Insérer avant
+invalid model %1, not supported by endpoint!	common	fr	Modèle %1 invalide : le endpoint n'est pas supporté
 make concise	aitools	fr	Rendre plus concis
 make more casual	aitools	fr	Rendre plus informel
 make more formal	aitools	fr	Rendre plus formel
+making text more casual...	aitools	fr	Récrire de manière moins formelle ...
+making text more concise...	aitools	fr	Récrire de manière plus concise ...
+making text more formal...	aitools	fr	Récrire de manière plus formelle ...
 maximum number of tokens	aitools	fr	Nombre maximal de tokens
 meeting follow-up	aitools	fr	Suivi de réunion
+missing ai configuration: api url or model!	common	fr	Configuration des outils d'IA manquante : URL ou Modèle
+no models found, maybe endpoint not correctly configured!	common	fr	Pas de modèle d'IA trouvé : le endpoint est probablement mal configuré.
+no result received from ai	aitools	fr	Aucun résultat reçu de l'IA
+overrides	aitools	fr	Ecraser
+please do not modify stock prompts, disable them instead and add your own.	aitools	fr	Ne pas supprimer les prompts par défaut. Vous pouvez les désactiver et en ajouter d'autres.
 processing stops without result(!), if this number of tokens is reached.	aitools	fr	Le traitement s'arrête sans résultat (!) si ce nombre de tokens est atteint.
 professional reply	aitools	fr	Réponse professionnelle
+reasoning effort	aitools	fr	Raisonnement (Reasoning effort)
 summarize text	aitools	fr	Résumer le texte
+summarizing your text...	aitools	fr	Résumer votre texte ...
+text processed successfully	aitools	fr	(R)écriture terminée.
 thank you note	aitools	fr	Note de remerciement
+this id is already in use!	aitools	fr	Cet ID est déjà utilisé
 translate	aitools	fr	Traduire
+translating to %1...	aitools	fr	Traduction en % ...
 translation languages	aitools	fr	Langues de traduction
+usage limit reached. please contact your administrator.	aitools	fr	Limite d'utilisation de l'IA. Merci de contacter l'administrateur de votre egroupware.

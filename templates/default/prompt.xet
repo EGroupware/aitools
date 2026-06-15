@@ -4,6 +4,17 @@
 	<template id="aitools.prompt.prompt" template="" lang="" group="0" version="19.1.001">
 		<et2-textarea  id="text" rows="18" width="100%" required="true"></et2-textarea>
 	</template>
+	<template id="aitools.prompt.triggers" template="" lang="" group="0" version="19.1.001">
+		<et2-select id="triggers" multiple="true" emptyLabel="Context-menu">
+			<option value="menu">Context-menu</option>
+			<option value="add">Entry added</option>
+			<option value="update">Entry updated</option>
+			<option value="delete">Entry deleted</option>
+		</et2-select>
+	</template>
+	<template id="aitools.prompt.tools" template="" lang="" group="0" version="19.1.001">
+		<et2-select id="tools" placeholder="None" multiple="true"></et2-select>
+	</template>
 	<template id="aitools.prompt.overrides" template="" lang="" group="0" version="19.1">
 		<grid width="100%">
 			<columns>
@@ -71,7 +82,7 @@
 				</row>
 				<row>
 					<et2-description for="apps" value="Applications"></et2-description>
-					<et2-select-app id="apps" multiple="true" emptyLabel="All"></et2-select-app>
+					<et2-select-app id="apps" multiple="true" emptyLabel="All" onchange="app.aitools.appChanged"></et2-select-app>
 				</row>
 				<row>
 					<et2-description for="account_id" value="Accounts"></et2-description>
@@ -82,11 +93,15 @@
 						<tabs>
 							<tab id="prompt" label="Prompt"/>
 							<tab id="overrides" label="Overrides"/>
+							<tab id="tools" label="Tools"/>
+							<tab id="triggers" label="Triggers"/>
 							<tab id="remarks" label="Notes"/>
 						</tabs>
 						<tabpanels>
 							<template id="aitools.prompt.prompt"/>
 							<template id="aitools.prompt.overrides"/>
+							<template id="aitools.prompt.tools"/>
+							<template id="aitools.prompt.triggers"/>
 							<template id="aitools.prompt.remarks"/>
 						</tabpanels>
 					</et2-tabbox>

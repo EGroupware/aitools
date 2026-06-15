@@ -10,7 +10,7 @@
  */
 
 $setup_info['aitools']['name']      = 'aitools';
-$setup_info['aitools']['version']   = '26.1.005';
+$setup_info['aitools']['version']   = '26.1.007';
 $setup_info['aitools']['app_order'] = 5;
 $setup_info['aitools']['tables']    = ['egw_ai_prompts'];
 $setup_info['aitools']['enable']    = 5;        // hidden from navbar, but framework app without index
@@ -34,6 +34,7 @@ $setup_info['aitools']['hooks']['sidebox_menu'] = 'EGroupware\\AiTools\\Hooks::a
 $setup_info['aitools']['hooks']['config'] = 'EGroupware\AiTools\\Hooks::config';
 $setup_info['aitools']['hooks']['config_validate'] = 'EGroupware\AiTools\Hooks::configValidate';
 $setup_info['aitools']['hooks']['settings'] = 'EGroupware\AiTools\Hooks::preferences';
+$setup_info['aitools']['hooks']['notify-all'] = 'EGroupware\AiTools\Hooks::notifyAll';
 
 /* Dependencies for this app to work */
 $setup_info['aitools']['depends'][] = array(

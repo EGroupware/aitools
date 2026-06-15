@@ -1,34 +1,41 @@
 ai service configuration	aitools	de	KI Service-Konfiguration
 aitools	common	de	AI Tools
+<<<<<<< Updated upstream
+context-menu	aitools	de	Kontextmenü
+create a contact from the signature	common	de	Lege aus der Signatur einen Kontakt an
 customize prompts	admin	de	Prompts anpassen
 deepl.com configuration	aitools	de	DeepL.com - Konfiguration
 delete this prompt(s)	aitools	de	Diese)n) Prompt(s) löschen
 do you really want to delete this prompt?	aitools	de	Wollen Sie diesen Prompt wirklich löschen?
+entry added	aitools	de	Eintrag hinzugefügt
+entry deleted	aitools	de	Eintrag gelöscht
+entry updated	aitools	de	Eintrag upgedated
 extra high	aitools	de	Extra hoch
+=======
+deepl.com configuration	aitools	de	DeepL.com - Konfiguration
+>>>>>>> Stashed changes
 fix grammar & spelling	aitools	de	Grammatik & Rechtschreibung korrigieren
 generate	aitools	de	Generiere
 generate a subject	aitools	de	Betreff generieren
-ids starting with 'aiassist.generate.' are placed in the 'generate' sub-menu	aitools	de	IDs die mit 'aiassist.generate.' beginnen erscheinen unter dem 'Generieren' Menü
 insert after	aitools	de	Dahinter einfügen
 insert before	aitools	de	Davor einfügen
-invalid model %1, not supported by endpoint!	common	de	Ungültiges Model %1, wird vom Endpunkt nicht unterstützt!
 make concise	aitools	de	Prägnant formulieren
 make more casual	aitools	de	Lockerer formulieren
 make more formal	aitools	de	Formeller formulieren
 maximum number of tokens	aitools	de	Maximale Anzahl von Tokens
 meeting follow-up	aitools	de	Nachbereitung des Meetings
-missing ai configuration: api url or model!	common	de	Fehlende AI Konfiguration: API URL order Model!
-no models found, maybe endpoint not correctly configured!	common	de	Keine Modelle gefunden, evtl. ist der Endpunkt nicht korrekt konfiguriert!
-order	aitools	de	Abfolge
-overrides	aitools	de	Überschreiben
-overriding what's set in the aitools app configuration	aitools	de	Überschreibt was in der App Konfiguration der AiTools gesetzt ist
-please do not modify stock prompts, disable them instead and add your own.	aitools	de	Bitte die Standard Prompts NICHT ändern, sondern deaktivieren und eigene anlegen.
 processing stops without result(!), if this number of tokens is reached.	aitools	de	Die Verarbeitung wird ohne Ergebnis beendet (!), wenn diese Anzahl an Tokens erreicht ist.
 professional reply	aitools	de	Professionelle Antwort
 summarize text	aitools	de	Text zusammenfassen
-temperature	aitools	de	Temperatur
 thank you note	aitools	de	Dankschreiben
+<<<<<<< Updated upstream
 this id is already in use!	aitools	de	Diese ID ist Bereits in Benutzung!
+tools	aitools	de	Werkzeuge
 translate	aitools	de	Übersetzen
 translation languages	aitools	de	Übersetzungssprachen
+triggers	aitools	de	Trigger
 usage limit reached. please contact your administrator.	aitools	de	Maximale Nutzung / Tokenlimit erreicht. Bitte benachrichtigen Sie Ihren Administrator.
+=======
+translate	aitools	de	Übersetzen
+translation languages	aitools	de	Übersetzungssprachen
+>>>>>>> Stashed changes
