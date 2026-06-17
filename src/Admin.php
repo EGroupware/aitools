@@ -224,15 +224,30 @@ class Admin
 	 * Execute action on list
 	 *
 	 * @param string $action
-	 * @param array|int $selected
+	 * @param array|int $selected prompt_id(s)
 	 * @param boolean $select_all
-	 * @returns string with success message
-	 * @throws Api\Exception\AssertionFailed
+	 * @return string success message
+	 * @throws Api\Exception\WrongParameter on unknown action
 	 */
 	protected function action($action, $selected, $select_all)
 	{
-		unset($action, $selected, $select_all);
+		unset($select_all);
 
-		throw new Api\Exception\AssertionFailed('To be implemented ;)');
+		switch ($action)
+		{
+			case 'delete':
+				$deleted = 0;
+				foreach ((array)$selected as $id)
+				{
+					if ($this->prompts->delete((int)$id))
+					{
+						++$deleted;
+					}
+				}
+				return lang('%1 prompt(s) deleted', $deleted);
+
+			default:
+				throw new Api\Exception\WrongParameter("Unknown action '$action'");
+		}
 	}
 }

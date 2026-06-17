@@ -315,7 +315,7 @@ class Bo
 	 * @return Language[]
 	 * @throws DeepLException
 	 */
-	public static function deeplTargetLanguages(array $config=null) : array
+	public static function deeplTargetLanguages(?array $config=null) : array
 	{
 		if (empty($config['deepl_api_key'])) return [];
 		return self::deeplTranslator($config)->getTargetLanguages();
@@ -784,15 +784,15 @@ class Bo
 	/**
 	 * Process a translation prompt, either via DeepL or a LLM call
 	 *
-	 * @param $content
-	 * @param $target_lang
-	 * @param $source_lang
-	 * @param $context
-	 * @param $is_html
+	 * @param string $content
+	 * @param string $target_lang
+	 * @param string|null $source_lang
+	 * @param string|null $context
+	 * @param bool|null $is_html
 	 * @return array
 	 * @throws DeepLException
 	 */
-	function translate($content, $target_lang, &$source_lang = null, $context = null, $is_html = null)
+	public function translate(string $content, string $target_lang, ?string &$source_lang = null, ?string $context = null, ?bool $is_html = null) : array
 	{
 		if(!empty(Api\Config::read(self::APP)['deepl_api_key']))
 		{
