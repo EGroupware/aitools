@@ -112,8 +112,7 @@ class Bo
 		// in case the response is in md --> html
 		if (preg_match('/\*\*.*\*\*/', $response))
 		{
-			$response = str_replace(preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $response),
-				"\n", "<br/>\n");
+			$response = preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $response);
 		}
 		return [
 			'content' => $response,
@@ -394,7 +393,7 @@ class Bo
 		$action = $params[0] ?? $_REQUEST['action'] ?? '';
 
 		// The content being processed is HTML / XML / markup and needs special handling
-		$is_markup = (bool)($_REQUEST['is_html']) ?? null;
+		$is_markup = !empty($_REQUEST['is_html']);
 
 		try {
 			switch ($action)
@@ -477,10 +476,9 @@ class Bo
 		curl_setopt($ch, CURLOPT_URL, $config['api_url'] . '/chat/completions');
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		// Translation tasks get longer timeout due to processing complexity
-		curl_setopt($ch, CURLOPT_TIMEOUT, $config['timeout'] ?? $is_translation ? 90 : 6060);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $config['timeout'] ?? ($is_translation ? 90 : 60));
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // Connection timeout
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 		// Enable HTTP/1.1 keep-alive for faster subsequent requests
@@ -532,7 +530,7 @@ class Bo
 					break;
 				case 400:   // model not on price-list
 				case 456:   // over budget
-					$error_message .= $error_details.' Please contact your administrator.';
+					$error_message .= 'Service configuration error. Please contact your administrator.';
 					break;
 				case 401:
 					$error_message .= 'Authentication error. Please contact your administrator.';
@@ -595,7 +593,16 @@ class Bo
 
 			if (!$status['ok'])
 			{
-				throw new \Exception($this->openAiResponseStatus($result)['message']);
+				$finish_reason = $result['choices'][0]['finish_reason'] ?? null;
+				// For length: the model generated partial content — return it instead of failing
+				if ($finish_reason === 'length' && !empty($ai_message['content']))
+				{
+					error_log('AI: finish_reason=length, returning partial response (' . strlen($ai_message['content']) . ' chars)');
+				}
+				else
+				{
+					throw new \Exception($this->openAiResponseStatus($result)['message']);
+				}
 			}
 		}
 
@@ -630,13 +637,18 @@ class Bo
 			'messages' => $messages,
 			'reasoning' => $config['reasoning'],
 			// Translation is deterministic - use low temperature for faster, more consistent results
-			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
+			'temperature' => $config['temperature'] ?? ($is_translation ? 0.1 : 0.7),
 			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
+			'max_tokens' => $config['max_tokens'] ?? ($is_translation ? 4000 : 10000),
 		]);
 		if (isset($config['top_p']))
 		{
 			$data['top_p'] = $config['top_p'];
+		}
+		// Ollama defaults num_ctx to 2048; expand it so emails + response fit
+		if (($config['provider'] ?? '') === 'ollama')
+		{
+			$data['options'] = ['num_ctx' => 32768];
 		}
 
 		// loop for tool-calls
@@ -648,11 +660,7 @@ class Bo
 			// Execute tools if requested and get a follow-up response
 			if (!empty($ai_message['tool_calls']) && !empty($config['tools']))
 			{
-				error_log("AI Assistant Debug - Tool calls detected: " . count($ai_message['tool_calls']));
-
 				$tool_results = $this->execute_tools($ai_message['tool_calls'], $config['tools']);
-
-				error_log("AI Assistant Debug - Tool results count: " . count($tool_results));
 
 				// Add the assistant's tool call message
 				$messages[] = [
@@ -668,7 +676,6 @@ class Bo
 					if (isset($tool_result['result']['message']))
 					{
 						$result_content = $tool_result['result']['message'];
-						error_log("AI Assistant Debug - Tool result message: " . substr($result_content, 0, 1024) . "...");
 					}
 					elseif (isset($tool_result['result']['success']) && $tool_result['result']['success'])
 					{
@@ -723,13 +730,7 @@ class Bo
 			$arguments = json_decode($tool_call['function']['arguments'], true);
 
 			try {
-				// Add timeout protection for each tool call
-				$start_time = microtime(true);
-
 				$result = Api\CalDAV\OpenAPI::toolCall($function_name, $arguments, $tool_filter??[], !isset($tool_filter));
-
-				$execution_time = round((microtime(true) - $start_time) * 1000);
-				error_log("AI Assistant Debug - Tool $function_name executed in {$execution_time}ms");
 
 				$results[] = [
 					'id' => $tool_call['id'],
@@ -739,7 +740,7 @@ class Bo
 
 			}
 			catch (\Throwable $e) {
-				error_log("AI Assistant Debug - Tool $function_name failed: " . $e->getMessage());
+				error_log("AI: Tool $function_name failed: " . $e->getMessage());
 				$results[] = [
 					'id' => $tool_call['id'],
 					'function' => $tool_call['function'],

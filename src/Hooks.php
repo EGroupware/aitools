@@ -2,7 +2,7 @@
 /**
  * EGroupware AI Tools
  *
- * @package rag
+ * @package aitools
  * @link https://www.egroupware.org
  * @author Amir Mo Dehestani <amir@egroupware.org>
  * @author Ralf Becker <rb@egroupware.org>
@@ -65,7 +65,7 @@ class Hooks
 		return array(
 			'egroupware'=> 'https://ai-proxy.egroupware.org/v1',
 			'ionos'     => 'https://openai.inference.de-txl.ionos.com/v1',
-			'ollama'    => 'http://172.17.0.1:11434/v1',
+			'ollama'    => 'http://host.docker.internal:11434/v1',
 			'openai'    => 'https://api.openai.com/v1',
 			'anthropic' => 'https://api.anthropic.com/v1',
 			'google'    => 'https://generativelanguage.googleapis.com/v1',
@@ -92,6 +92,7 @@ class Hooks
 					'egroupware:meta-llama/Llama-3.3-70B-Instruct' => 'EGroupware/IONOS Meta Llama 3.3 70B',
 					'egroupware:mistralai/Mistral-Small-24B-Instruct' => 'EGroupware/IONOS Mistral Small 24B',
 					'ollama:mistral-small3.1:24b-instruct-2503-q4_K_M' => 'Ollama Mistral 3.1 Small (24b-instruct-2503-q4_K_M)',
+					'ollama:gemma4:latest' => 'Ollama Gemma 4 (local)',
 					/* no need to promote these
 					'openai:gpt-4o' => 'OpenAI GPT-4o',
 					'openai:gpt-4o-mini' => 'OpenAI GPT-4o Mini',
@@ -124,7 +125,7 @@ class Hooks
 		// Autopopulate API URL based on a selected model
 		if (!empty($data['ai_model']))
 		{
-			[$provider, $model] = explode(':', $data['ai_model']);
+			[$provider, $model] = explode(':', $data['ai_model'], 2);
 			$urlMapping = self::getProviderUrlMapping();
 
 			if (isset($urlMapping[$provider]) && empty($data['ai_api_url']))
@@ -222,7 +223,7 @@ class Hooks
 				{
 					$bo ??= new Bo();
 					$result = $bo->process_predefined_prompt($prompt, json_encode($data));
-					error_log(__METHOD__.'('.json_encode($data).') prompt #'.$prompt_id.': '.json_encode($result));
+					error_log(__METHOD__.'(app='.$data['app'].' type='.$data['type'].' id='.($data['data']['id'] ?? '?').') prompt #'.$prompt_id);
 				}
 			}
 			catch (\Throwable $e) {

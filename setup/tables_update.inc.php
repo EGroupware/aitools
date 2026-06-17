@@ -81,9 +81,9 @@ Translate to {\$lang}. Output only the translation.
 Follow these rules:
 - Never translate technical elements such as commands, code snippets, function names, file paths, URLs, API names, environment variables, or identifiers.
 - Correct only the text content, neither the HTML tags nor the given structure.
-EOF, null, ['timeout' => 90, 'temperature' => 0.1, 'max_token' => 4000]],
+EOF, null, ['timeout' => 90, 'temperature' => 0.1, 'max_tokens' => 4000]],
 		'aiassist.translate.custom' => ['Custom translation prompt', 'Preferred, if not disabled, replacing "aiassist.translate"',
-			true, ['timeout' => 90, 'temperature' => 0.1, 'max_token' => 4000]],
+			true, ['timeout' => 90, 'temperature' => 0.1, 'max_tokens' => 4000]],
 		// Content generation prompts
 		'aiassist.generate.reply'     => ['Professional reply', 'Generate a professional email reply based on this content.'],
 		'aiassist.generate.followup'  => ['Meeting follow-up', 'Create a professional meeting follow-up message.'],
