@@ -691,8 +691,8 @@ class Bo
 				}
 				$ai_message['tool_calls'] = $tool_results;
 
-				// Make a second API call to get the AI's response incorporating the tool results
-				$data = array_filter([
+				// Continue with tools still available so AI can chain sequential tool calls
+				$data = array_filter($tools+[
 					'model' => $config['model'],
 					'messages' => $messages,
 					'reasoning' => $config['reasoning'],
