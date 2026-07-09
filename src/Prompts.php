@@ -77,7 +77,7 @@ class Prompts extends Api\Storage\Json
 			$account_ids[] = $account_id;
 
 			$prompts = array_filter($prompts, static fn($prompt) => (empty($prompt['account_id']) || array_intersect($prompt['account_id'], $account_ids)) &&
-				empty($prompt['triggers']) || in_array('menu', $prompt['triggers']));
+				(empty($prompt['triggers']) || in_array('menu', $prompt['triggers'])));
 		}
 
 		foreach ($prompts as &$prompt)
