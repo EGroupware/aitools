@@ -112,8 +112,8 @@ class Bo
 		// in case the response is in md --> html
 		if (preg_match('/\*\*.*\*\*/', $response))
 		{
-			$response = str_replace(preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $response),
-				"\n", "<br/>\n");
+			$response = str_replace("\n", "<br/>\n",
+				preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $response));
 		}
 		return [
 			'content' => $response,
