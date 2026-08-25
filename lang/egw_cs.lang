@@ -1,6 +1,9 @@
 ai service configuration	aitools	cs	Konfigurace služby AI
 aitools	common	cs	Nástroje AI
 deepl.com configuration	aitools	cs	Konfigurace DeepL.com
+entry added	aitools	cs	Záznam přidán.
+entry deleted	aitools	cs	Záznam smazán.
+entry updated	aitools	cs	Záznam aktualizován.
 fix grammar & spelling	aitools	cs	Opravit gramatiku a pravopis
 generate	aitools	cs	Generovat
 generate a subject	aitools	cs	Generovat předmět
@@ -11,6 +14,10 @@ make more casual	aitools	cs	Zjednodušit
 make more formal	aitools	cs	Zformulovat formálněji
 maximum number of tokens	aitools	cs	Maximální počet tokenů
 meeting follow-up	aitools	cs	Následná schůzka
+order	aitools	cs	Pořadí
+overrides	aitools	cs	Přepsání nastavení
+overriding what's set in the aitools app configuration	aitools	cs	Přepsání nastavení z konfigurace aplikace AI-Tools
+please do not modify stock prompts, disable them instead and add your own.	aitools	cs	Prosím, NEUPRAVUJTE výchozí výzvy, místo toho je deaktivujte a přidejte si vlastní.
 processing stops without result(!), if this number of tokens is reached.	aitools	cs	Pokud je tento počet tokenů dosažen, zpracování se zastaví bez výsledku (!).
 professional reply	aitools	cs	Profesionální odpověď
 summarize text	aitools	cs	Shrnout text

@@ -1,6 +1,9 @@
 ai service configuration	aitools	pt-br	Configuração do serviço de AI
 aitools	common	pt-br	Ferramentas de IA
 deepl.com configuration	aitools	pt-br	Configuração do DeepL.com
+entry added	aitools	pt-br	Entrada adicionada.
+entry deleted	aitools	pt-br	Entrada excluída.
+entry updated	aitools	pt-br	Entrada atualizada
 fix grammar & spelling	aitools	pt-br	Corrigir gramática e ortografia
 generate	aitools	pt-br	Gerar
 generate a subject	aitools	pt-br	Gerar um assunto
@@ -11,6 +14,10 @@ make more casual	aitools	pt-br	Tornar mais informal
 make more formal	aitools	pt-br	Tornar mais formal
 maximum number of tokens	aitools	pt-br	Número máximo de tokens
 meeting follow-up	aitools	pt-br	Acompanhamento da reunião
+order	aitools	pt-br	Ordem
+overrides	aitools	pt-br	Substituições
+overriding what's set in the aitools app configuration	aitools	pt-br	Substituindo as configurações definidas no aplicativo Ferramentas de IA
+please do not modify stock prompts, disable them instead and add your own.	aitools	pt-br	Por favor, NÃO modifique os prompts padrão; em vez disso, desative-os e adicione os seus próprios.
 processing stops without result(!), if this number of tokens is reached.	aitools	pt-br	O processamento é interrompido sem resultado(!), se esse número de tokens for atingido.
 professional reply	aitools	pt-br	Resposta profissional
 summarize text	aitools	pt-br	Resumir texto
