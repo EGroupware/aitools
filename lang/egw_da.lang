@@ -1,6 +1,9 @@
 ai service configuration	aitools	da	Konfiguration af AI-tjeneste
 aitools	common	da	AI-værktøjer
 deepl.com configuration	aitools	da	DeepL.com-konfiguration
+entry added	aitools	da	Indtastning tilføjet.
+entry deleted	aitools	da	Indtastning slettet.
+entry updated	aitools	da	Indtastning opdateret.
 fix grammar & spelling	aitools	da	Rettelse af grammatik og stavning
 generate	aitools	da	Generer
 generate a subject	aitools	da	Generer et emne
@@ -11,6 +14,10 @@ make more casual	aitools	da	Gør det mere uformelt
 make more formal	aitools	da	Gør det mere formelt
 maximum number of tokens	aitools	da	Maksimalt antal tokens
 meeting follow-up	aitools	da	Opfølgning på møde
+order	aitools	da	Rækkefølge
+overrides	aitools	da	Overskrivninger
+overriding what's set in the aitools app configuration	aitools	da	Overskrivning af indstillingerne i AI-Tools-appens konfiguration
+please do not modify stock prompts, disable them instead and add your own.	aitools	da	Du må IKKE ændre standardprompterne; deaktiver dem i stedet og tilføj dine egne.
 processing stops without result(!), if this number of tokens is reached.	aitools	da	Behandlingen stopper uden resultat(!), hvis dette antal tokens nås.
 professional reply	aitools	da	Professionelt svar
 summarize text	aitools	da	Opsummer tekst

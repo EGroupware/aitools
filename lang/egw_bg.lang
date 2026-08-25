@@ -1,6 +1,9 @@
 ai service configuration	aitools	bg	Конфигурация на AI услугата
 aitools	common	bg	AI инструменти
 deepl.com configuration	aitools	bg	Конфигурация на DeepL.com
+entry added	aitools	bg	Записът е добавен.
+entry deleted	aitools	bg	Записът е изтрит.
+entry updated	aitools	bg	Записът е актуализиран.
 fix grammar & spelling	aitools	bg	Поправяне на граматика и правопис
 generate	aitools	bg	Генериране
 generate a subject	aitools	bg	Генериране на тема
@@ -11,6 +14,10 @@ make more casual	aitools	bg	По-неформален стил
 make more formal	aitools	bg	По-формален стил
 maximum number of tokens	aitools	bg	Максимален брой символи
 meeting follow-up	aitools	bg	Проследяване на среща
+order	aitools	bg	Ред
+overrides	aitools	bg	Преопределяне
+overriding what's set in the aitools app configuration	aitools	bg	Преопределяне на настройките в конфигурацията на приложението AI-Tools
+please do not modify stock prompts, disable them instead and add your own.	aitools	bg	Моля, НЕ променяйте стандартните подсказки, а вместо това ги деактивирайте и добавете свои собствени.
 processing stops without result(!), if this number of tokens is reached.	aitools	bg	Обработката спира без резултат(!), ако този брой символи бъде достигнат.
 professional reply	aitools	bg	Професионален отговор
 summarize text	aitools	bg	Обобщаване на текст
