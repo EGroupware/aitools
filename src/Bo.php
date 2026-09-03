@@ -480,7 +480,7 @@ class Bo
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		// Translation tasks get longer timeout due to processing complexity
-		curl_setopt($ch, CURLOPT_TIMEOUT, $config['timeout'] ?? $is_translation ? 90 : 6060);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $config['timeout'] ?? ($is_translation ? 90 : 60));
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // Connection timeout
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 		// Enable HTTP/1.1 keep-alive for faster subsequent requests
@@ -630,9 +630,9 @@ class Bo
 			'messages' => $messages,
 			'reasoning' => $config['reasoning'],
 			// Translation is deterministic - use low temperature for faster, more consistent results
-			'temperature' => $config['temperature'] ?? $is_translation ? 0.1 : 0.7,
+			'temperature' => $config['temperature'] ?? ($is_translation ? 0.1 : 0.7),
 			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => $config['max_tokens'] ?? $is_translation ? 4000 : (int)($config['max_tokens'] ?? 10000),
+			'max_tokens' => (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000)),
 		]);
 		if (isset($config['top_p']))
 		{
