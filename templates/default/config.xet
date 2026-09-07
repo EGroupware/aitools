@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE overlay PUBLIC "-//EGroupware GmbH//eTemplate 2.0//EN" "https://www.egroupware.org/etemplate2.0.dtd">
 <overlay>
-	<et2-template id="aitools.config" template="" lang="" group="0" version="1.0" onload="app.aitools.configModelChanged">
+	<et2-template  id="aitools.config" template="" lang="" group="0" version="1.0" onload="app.aitools.configModelChanged">
 		<grid width="100%" class="admin-config egwGridView_grid">
 			<columns>
 				<column width="50%"/>
@@ -9,26 +9,26 @@
 			</columns>
 			<rows>
 				<row>
-					<et2-description value="AI Service Configuration" span="all" class="subHeader"></et2-description>
+					<et2-description  value="AI Service Configuration" span="all" class="subHeader"></et2-description>
 				</row>
 				<row>
-					<et2-description value="AI Model Provider" label="%s:"></et2-description>
+					<et2-description  value="AI Model Provider" label="%s:"></et2-description>
 					<et2-vbox>
-						<et2-select id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
-						<et2-textbox id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
+						<et2-select  id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
+						<et2-textbox  id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
 					</et2-vbox>
 				</row>
 				<row>
-					<et2-description value="AI API URL" label="%s:"></et2-description>
-					<et2-textbox id="newsettings[ai_api_url]" placeholder="Enter custom API URL"></et2-textbox>
+					<et2-description  value="AI API URL" label="%s:"></et2-description>
+					<et2-textbox  id="newsettings[ai_api_url]" placeholder="Enter custom API URL"></et2-textbox>
 				</row>
 				<row>
-					<et2-description value="AI API Key" label="%s:"></et2-description>
-					<et2-password id="newsettings[ai_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
+					<et2-description  value="AI API Key" label="%s:"></et2-description>
+					<et2-password  id="newsettings[ai_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
 				</row>
 				<row>
-					<et2-description for="newsettings[reasoning]" value="Reasoning effort" label="%s:"></et2-description>
-					<et2-select id="newsettings[reasoning]" emptyLabel="Default">
+					<et2-description  for="newsettings[reasoning]" value="Reasoning effort" label="%s:"></et2-description>
+					<et2-select  id="newsettings[reasoning]" emptyLabel="Default">
 						<option value="none">None</option>
 						<option value="low">Low</option>
 						<option value="medium">Medium</option>
@@ -37,30 +37,30 @@
 					</et2-select>
 				</row>
 				<row>
-					<et2-description value="Maximum number of tokens" label="%s:"></et2-description>
+					<et2-description  value="Maximum number of tokens" label="%s:"></et2-description>
 					<et2-hbox>
-						<et2-number id="newsettings[max_tokens]" placeholder="10000"></et2-number>
-						<et2-description value="Processing stops without result(!), if this number of tokens is reached."></et2-description>
+						<et2-number  id="newsettings[max_tokens]" placeholder="10000"></et2-number>
+						<et2-description  value="Processing stops without result(!), if this number of tokens is reached."></et2-description>
 					</et2-hbox>
 				</row>
 				<row>
-					<et2-description for="newsettings[timeout]" value="Timeout"></et2-description>
-					<et2-number id="newsettings[timeout]" placeholder="60"></et2-number>
+					<et2-description  for="newsettings[timeout]" value="Timeout"></et2-description>
+					<et2-number  id="newsettings[timeout]" placeholder="60"></et2-number>
 				</row>
 				<row>
-					<et2-description for="newsettings[temperature]" value="Temperature"></et2-description>
-					<et2-number id="newsettings[temperature]" placeholder="0.7" min="0" max="1.0" step=".1"></et2-number>
+					<et2-description  for="newsettings[temperature]" value="Temperature"></et2-description>
+					<et2-number  id="newsettings[temperature]" placeholder="0.7" min="0" max="1.0" step=".1"></et2-number>
 				</row>
 				<row>
-					<et2-description value="deepl.com Configuration" span="all" class="subHeader"></et2-description>
+					<et2-description  value="deepl.com Configuration" span="all" class="subHeader"></et2-description>
 				</row>
 				<row>
-					<et2-description value="deepl.com API URL" label="%s:"></et2-description>
-					<et2-textbox id="newsettings[deepl_api_url]" placeholder="https://api.deepl.com"></et2-textbox>
+					<et2-description  value="deepl.com API URL" label="%s:"></et2-description>
+					<et2-textbox  id="newsettings[deepl_api_url]" placeholder="https://api.deepl.com"></et2-textbox>
 				</row>
 				<row>
-					<et2-description value="deepl.com API Key" label="%s:"></et2-description>
-					<et2-password id="newsettings[deepl_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
+					<et2-description  value="deepl.com API Key" label="%s:"></et2-description>
+					<et2-password  id="newsettings[deepl_api_key]" placeholder="Enter your API key" autocomplete="new-password"></et2-password>
 				</row>
 			</rows>
 		</grid>
