@@ -9,11 +9,12 @@
  */
 
 import {EgwApp} from '../../api/js/jsapi/egw_app';
-import {app} from "../../api/js/jsapi/egw_global";
 import type {Et2Select} from "../../api/js/etemplate/Et2Select/Et2Select";
 import type {Et2Template} from "../../api/js/etemplate/Et2Template/Et2Template";
 import type {etemplate2} from "../../api/js/etemplate/etemplate2";
 import type {Et2SelectApp} from "../../api/js/etemplate/Et2Select/Select/Et2SelectApp";
+// egw/app are ambient globals (declare global {} in egw_global.d.ts, unconditionally included
+// via tsconfig's "**/*.d.ts") - no import needed or possible.
 
 /**
  * UI for EGroupware AI Assistant application
@@ -27,7 +28,8 @@ export class AIToolsApp extends EgwApp
 		switch (name)
 		{
 			case 'aitools.prompts':
-				app.admin?.enableAppToolbar(et2, name);
+				// app.admin is typed generically as EgwApp; enableAppToolbar() is AdminApp-specific
+				(<any>app.admin)?.enableAppToolbar(et2, name);
 				break;
 			case 'aitools.prompt':
 				this.appChanged();
@@ -43,10 +45,10 @@ export class AIToolsApp extends EgwApp
 	 * @param _ev
 	 * @param _widget
 	 */
-	configModelChanged(_ev? : Event, _widget : Et2Select|Et2Template)
+	configModelChanged(_ev? : Event, _widget? : Et2Select|Et2Template)
 	{
-		if (!this.et2) this.et2 = _widget.getRoot();
-		const model = _ev.type === 'load' ? this.et2.getInputWidgetById('newsettings[ai_model]') : _widget;
+		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		const model = <Et2Select><unknown>(_ev.type === 'load' ? this.et2.getInputWidgetById('newsettings[ai_model]') : _widget);
 		const custom_model = this.et2.getWidgetById('newsettings[ai_custom_model]');
 		custom_model.hidden = model?.value !== 'custom';
 		custom_model.required = model?.value && model.value === 'custom';
@@ -66,7 +68,7 @@ export class AIToolsApp extends EgwApp
 		const trigger : Et2Select = <Et2Select><any>this.et2.getInputWidgetById('trigger');
 
 		let supported = undefined;
-		apps.value.forEach((app: string) =>
+		apps.getValue().forEach((app: string) =>
 		{
 			if (!this.egw.link_get_registry(app))
 			{
