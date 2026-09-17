@@ -220,7 +220,8 @@ class Prompts extends Api\Storage\Json
 
 		self::invalidate();
 
-		self::updateTriggers($this->data['id'], $this->data['triggers'] ?? [], $this->data['apps'] ?? []);
+		// a disabled prompt must not stay registered as a trigger, or it keeps firing
+		self::updateTriggers($this->data['id'], $this->data['disabled'] ? [] : ($this->data['triggers'] ?? []), $this->data['apps'] ?? []);
 
 		return $ret;
 	}

@@ -183,6 +183,22 @@ class Hooks
 		{
 			return;
 		}
+
+		// Actually running the prompt(s) can call out to a (slow) AI/LLM API - do that AFTER the
+		// response was sent to the user (fastcgi_finish_request(), triggered via Egw::on_shutdown()),
+		// so eg. saving an InfoLog entry that triggers a prompt is not itself slowed down by it.
+		Api\Egw::on_shutdown([self::class, 'runTriggeredPrompts'], [$data, $prompt_ids]);
+	}
+
+	/**
+	 * Actually run the prompt(s) triggered by notifyAll() - called via Egw::on_shutdown(), ie.
+	 * AFTER the response was already sent to the user
+	 *
+	 * @param array $data
+	 * @param int[] $prompt_ids
+	 */
+	public static function runTriggeredPrompts(array $data, array $prompt_ids)
+	{
 		$account_ids = Api\Accounts::getInstance()->memberships($GLOBALS['egw_info']['user']['account_id'], true);
 		$account_ids[] = $GLOBALS['egw_info']['user']['account_id'];
 
@@ -217,7 +233,7 @@ class Hooks
 		{
 			$prompts ??= new Prompts();
 			try {
-				if (($prompt = $prompts->read($prompt_id)) &&
+				if (($prompt = $prompts->read($prompt_id)) && empty($prompt['disabled']) &&
 					(empty($prompt['account_id']) || array_intersect($account_ids, $prompt['account_id'])))
 				{
 					$bo ??= new Bo();
