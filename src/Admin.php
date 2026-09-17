@@ -231,8 +231,23 @@ class Admin
 	 */
 	protected function action($action, $selected, $select_all)
 	{
-		unset($action, $selected, $select_all);
+		if ($select_all)
+		{
+			$selected = array_column($this->prompts->search(null, false, '', '', '', false, 'AND', false), 'id');
+		}
+		$selected = (array)$selected;
 
-		throw new Api\Exception\AssertionFailed('To be implemented ;)');
+		switch ($action)
+		{
+			case 'delete':
+				if (!$this->prompts->delete($selected))
+				{
+					throw new Api\Exception\AssertionFailed(lang('Error deleting entry!'));
+				}
+				Api\Framework::refresh_opener(lang('%1 prompt(s) deleted.', count($selected)),
+					self::APP, $selected, 'delete');
+				return lang('%1 prompt(s) deleted.', count($selected));
+		}
+		throw new Api\Exception\AssertionFailed(lang("Unknown action '%1'!", $action));
 	}
 }
