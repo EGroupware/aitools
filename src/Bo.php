@@ -148,6 +148,56 @@ class Bo
 	}
 
 	/**
+	 * Check and cache, if AI texttools are available / configured and enabled for the user
+	 *
+	 * @return int 0: NOT enabled, 1: fully enabled, 2: only translations / DeepL supported options
+	 */
+	public static function enabled() : int
+	{
+		// user has no run-rights for the provider
+		if (empty($GLOBALS['egw_info']['user']['apps'][self::APP]))
+		{
+			return 0;
+		}
+		return Api\Cache::getInstance(self::APP, 'configured-'.md5(json_encode(Api\Config::read(self::APP))),
+			static function ()
+		{
+			try {
+				return (int)self::test_api_connection();
+			}
+			catch (\Exception $e) {
+				try {
+					return self::deeplTargetLanguages(Api\Config::read(self::APP)) ? 2 : 0;
+				}
+				catch (\Exception $e) {}
+			}
+			return 0;
+		}, [], 7200);
+	}
+
+	/**
+	 * The prompts actually available to the current user right now
+	 *
+	 * Deciding whether AiTools is enabled/configured at all lives HERE, not in the widget - a
+	 * widget showing its trigger button is then purely a function of "are there any prompts to
+	 * show" (see Et2Ai.ts's transformAttributes()), which can't go wrong regardless of which
+	 * template/app a given et2-ai instance is mounted from (ticket #124681 follow-up, 2026-09-17:
+	 * a per-widget-instance server-side "disable" signal never reached a widget mounted from a
+	 * referenced sub-template, eg. mail's preview pane, since that never runs any server-side
+	 * widget lifecycle code for its own content at all).
+	 *
+	 * @return array name => value pairs, see get_predefined_prompts()'s own $return_prompt=false shape
+	 */
+	public function availablePrompts() : array
+	{
+		if (!($enabled = self::enabled()))
+		{
+			return [];
+		}
+		return $this->get_predefined_prompts(false, $enabled == 2);
+	}
+
+	/**
 	 * Get predefined prompt templates
 	 *
 	 * The system prompt handles global rules (markup preservation, etc.)
@@ -157,12 +207,21 @@ class Bo
 	 */
 	public function get_predefined_prompts(bool $return_prompt=true, bool $only_translation=false) : array
 	{
+		// get_ai_config() throws when the main provider isn't configured (eg. DeepL-only or nothing
+		// configured at all) - computed once, tolerantly, so an unconfigured main provider does NOT
+		// silently wipe the ENTIRE prompts list (every prompt without its own 'timeout' override
+		// used to trigger this inside array_map() below, uncaught - api/user.php's own bootstrap
+		// call swallows \Throwable, so the browser's global egw.prompts() ended up completely empty
+		// regardless of enabled()/DeepL state, whenever just the main provider was unconfigured)
+		$default_timeout = null;
+		try { $default_timeout = self::get_ai_config()['timeout'] ?? null; } catch (\Throwable $e) {}
+
 		// return either just the prompt-text or id, label and apps
 		$map = static fn($prompts) => array_map(static fn($prompt) => $return_prompt ? $prompt : [
 			'id' => $prompt['name'],
 			'label' => $prompt['label'],
 			'apps' => !empty($prompt['apps']) ? explode(',', $prompt['apps']) : null,
-			'timeout' => $prompt['timeout'] ?? self::get_ai_config()['timeout'] ?? ($only_translation ? 90 : 60),
+			'timeout' => $prompt['timeout'] ?? $default_timeout ?? ($only_translation ? 90 : 60),
 		]+(isset($prompt['children']) ? ['children' => $prompt['children']] : []), $prompts);
 
 		if ($only_translation)
@@ -378,6 +437,25 @@ class Bo
 		}
 
 		return $translation;
+	}
+
+	/**
+	 * Static AJAX API endpoint for chat interactions
+	 *
+	 * This is the concrete method AiAssistantController.ts hardcodes as its default `endpoint`
+	 * (used by the et2-ai widget - a pure client-side web-component with no server-side widget
+	 * class of its own anymore, see ticket #124681 follow-up, 2026-09-17).
+	 *
+	 * @param string $action
+	 * @param ...$params
+	 */
+	public static function ajaxApi(string $action, ...$params)
+	{
+		if (empty($GLOBALS['egw_info']['user']['apps'][self::APP]))
+		{
+			throw new Api\Exception\NoPermission\App();
+		}
+		(new self())->ajax_api($action, ...$params);
 	}
 
 	/**
