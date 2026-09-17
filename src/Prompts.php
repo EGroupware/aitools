@@ -242,7 +242,13 @@ class Prompts extends Api\Storage\Json
 				self::updateTriggers($id);
 			}
 		}
-		return parent::delete($keys, $only_return_query);
+		$ret = parent::delete($keys, $only_return_query);
+
+		// unlike save(), this was never invalidating the 24h-cached prompts() list - a deleted
+		// prompt kept showing up (and remained runnable) in prompt menus for up to a day
+		if (!$only_return_query) self::invalidate();
+
+		return $ret;
 	}
 
 	/**
