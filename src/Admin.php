@@ -101,7 +101,7 @@ class Admin
 					break;
 
 				case 'delete':
-					if (!$this->prompts->delete($content['id']))
+					if (!$this->prompts->delete(['id' => $content['id']]))
 					{
 						Api\Framework::message(lang('Error deleting entry!'));
 					}
@@ -240,7 +240,11 @@ class Admin
 		switch ($action)
 		{
 			case 'delete':
-				if (!$this->prompts->delete($selected))
+				// must be keyed ['id' => $selected], NOT a bare list - Storage\Base::delete() treats
+				// an integer-keyed array as raw SQL WHERE fragments, not primary-key values: a bare
+				// list of ids there turns into eg. "WHERE 75" (a nonzero literal, always true),
+				// deleting every row in the table instead of just the selected one(s)
+				if (!$this->prompts->delete(['id' => $selected]))
 				{
 					throw new Api\Exception\AssertionFailed(lang('Error deleting entry!'));
 				}

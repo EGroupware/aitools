@@ -28,7 +28,11 @@ class PromptsTriggerAndDeleteTest extends \EGroupware\Api\AppTest
 		$prompts = new Prompts();
 		foreach ($this->prompt_ids as $id)
 		{
-			$prompts->delete($id);
+			// must be ['id' => $id], NOT a bare scalar - Storage\Base::delete() wraps a bare scalar
+			// via the raw db column name (prompt_id), which data2db()/the column-lookup below then
+			// fails to match back to the app-level 'id' key, silently deleting nothing (confirmed:
+			// affected_rows()===0) - this leaked a row per test run before this fix
+			$prompts->delete(['id' => $id]);
 		}
 		parent::tearDown();
 	}
@@ -59,7 +63,17 @@ class PromptsTriggerAndDeleteTest extends \EGroupware\Api\AppTest
 			'A disabled prompt must not remain registered as a trigger, or it keeps firing');
 	}
 
-	public function testActionDeleteWorks()
+	/**
+	 * Regression test for a mass-deletion bug found while investigating this same file's own
+	 * (previously silently no-op'ing) tearDown() cleanup: Admin::action()'s 'delete' case used to
+	 * call `$this->prompts->delete($selected)` with $selected a bare list of ids, eg. [75]. That
+	 * hits Storage\Base::delete()'s "keep sql fragments (with integer key)" branch, which treats an
+	 * integer-keyed array entry as a raw SQL WHERE fragment, not a primary-key value - so a bare [75]
+	 * becomes the literal fragment "75" (a nonzero literal, always true in SQL), deleting every row
+	 * in the WHOLE table, not just the one selected. Confirmed live via a throwaway 3-row/1-selected
+	 * test: all 3 rows vanished, not just the selected one. Fixed by keying it ['id' => $selected].
+	 */
+	public function testActionDeleteOnlyRemovesSelectedEntry()
 	{
 		$prompts = new Prompts();
 		$this->assertSame(0, $prompts->save([
@@ -70,12 +84,49 @@ class PromptsTriggerAndDeleteTest extends \EGroupware\Api\AppTest
 		$id = $prompts->data['id'];
 		$this->prompt_ids[] = $id;
 
+		// a sibling that must survive - this is what the mass-deletion bug would wipe out too
+		$survivor = new Prompts();
+		$this->assertSame(0, $survivor->save([
+			'name'  => 'prompts_survivor_test_'.uniqid(),
+			'label' => 'PromptsTriggerAndDeleteTest survivor',
+			'text'  => 'test',
+		]), 'Could not create survivor test prompt');
+		$survivor_id = $survivor->data['id'];
+		$this->prompt_ids[] = $survivor_id;
+
 		$admin = new Admin();
 		$action = new \ReflectionMethod($admin, 'action');
 		$action->setAccessible(true);
 		$action->invoke($admin, 'delete', [$id], false);
 
 		$this->assertFalse((new Prompts())->read($id), 'Prompt must be gone after the delete action');
+		$this->assertNotFalse((new Prompts())->read($survivor_id),
+			'delete action must only remove the selected entry, not every prompt in the table');
+	}
+
+	/**
+	 * delete() (unlike save()) never invalidated the 24h-cached Prompts::prompts() list - a deleted
+	 * prompt kept showing up (and remained runnable/triggerable) in prompt menus for up to a day.
+	 * Found incidentally while investigating the mass-deletion bug above.
+	 */
+	public function testDeleteInvalidatesPromptsCache()
+	{
+		$prompts = new Prompts();
+		$this->assertSame(0, $prompts->save([
+			'name'  => 'prompts_cache_invalidate_test_'.uniqid(),
+			'label' => 'PromptsTriggerAndDeleteTest cache',
+			'text'  => 'test',
+		]), 'Could not create test prompt');
+		$id = $prompts->data['id'];
+		$name = $prompts->data['name'];
+		$this->prompt_ids[] = $id;
+
+		$this->assertArrayHasKey($name, Prompts::prompts(), 'Newly saved prompt must be in the cached list');
+
+		(new Prompts())->delete(['id' => $id]);
+
+		$this->assertArrayNotHasKey($name, Prompts::prompts(),
+			'Deleted prompt must not remain in the cached prompts() list');
 	}
 
 	/**
