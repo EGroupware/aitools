@@ -24,6 +24,8 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 {
 	protected $prompt_ids = [];
 	protected $info_ids = [];
+	protected $event_ids = [];
+	protected $contact_ids = [];
 
 	protected function tearDown() : void
 	{
@@ -41,6 +43,20 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 		}
 		$this->info_ids = [];
 
+		$calendar = new \calendar_boupdate();
+		foreach ($this->event_ids as $id)
+		{
+			$calendar->delete($id, 0, true);
+		}
+		$this->event_ids = [];
+
+		$addressbook = new \addressbook_bo();
+		foreach ($this->contact_ids as $id)
+		{
+			$addressbook->delete($id);
+		}
+		$this->contact_ids = [];
+
 		parent::tearDown();
 	}
 
@@ -55,6 +71,38 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 		$this->info_ids[] = $info_id;
 
 		return $infolog->read($info_id);
+	}
+
+	protected function makeCalendarEvent(string $title) : array
+	{
+		$calendar = new \calendar_boupdate();
+		$start = new Api\DateTime('now', Api\DateTime::$server_timezone);
+		$start->modify('+1 hour');
+		$end = clone $start;
+		$end->modify('+1 hour');
+		$event_id = $calendar->save([
+			'title' => $title,
+			'owner' => $GLOBALS['egw_info']['user']['account_id'],
+			'start' => $start,
+			'end'   => $end,
+		]);
+		$this->event_ids[] = $event_id;
+
+		return $calendar->read($event_id);
+	}
+
+	protected function makeContact(string $family_name) : array
+	{
+		$addressbook = new \addressbook_bo();
+		$contact = [
+			'n_family' => $family_name,
+			'n_given'  => 'TriggeredPromptExecutionTest',
+			'owner'    => $GLOBALS['egw_info']['user']['account_id'],
+		];
+		$contact_id = $addressbook->save($contact);
+		$this->contact_ids[] = $contact_id;
+
+		return $addressbook->read($contact_id);
 	}
 
 	protected function makePrompt(array $data) : int
@@ -86,6 +134,41 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 		$this->assertCount(1, $requests, 'the triggered prompt must have called the AI exactly once');
 		$this->assertStringContainsString($entry['info_subject'], $requests[0]['messages'][1]['content'] ?? '',
 			"the converted infolog entry's own subject must reach the AI in the user message");
+	}
+
+	/**
+	 * Same end-to-end path, but for calendar (JsCalendar::JsEvent()) - the per-app conversion switch
+	 * in runTriggeredPrompts() had only ever been exercised for infolog before this.
+	 */
+	public function testCalendarAddTriggerActuallyCallsTheAi()
+	{
+		$event = $this->makeCalendarEvent('TriggeredPromptExecutionTest calendar subject '.uniqid());
+		$prompt_id = $this->makePrompt(['triggers' => ['add'], 'apps' => ['calendar']]);
+
+		Hooks::runTriggeredPrompts(['type' => 'add', 'app' => 'calendar', 'id' => $event['id'], 'data' => $event],
+			[$prompt_id]);
+
+		$requests = $this->loggedRequests();
+		$this->assertCount(1, $requests, 'the triggered prompt must have called the AI exactly once');
+		$this->assertStringContainsString($event['title'], $requests[0]['messages'][1]['content'] ?? '',
+			"the converted calendar event's own title must reach the AI in the user message");
+	}
+
+	/**
+	 * Same end-to-end path, but for addressbook (JsContact::getJsCard()).
+	 */
+	public function testAddressbookAddTriggerActuallyCallsTheAi()
+	{
+		$contact = $this->makeContact('TriggeredPromptExecutionTest-'.uniqid());
+		$prompt_id = $this->makePrompt(['triggers' => ['add'], 'apps' => ['addressbook']]);
+
+		Hooks::runTriggeredPrompts(['type' => 'add', 'app' => 'addressbook', 'id' => $contact['id'], 'data' => $contact],
+			[$prompt_id]);
+
+		$requests = $this->loggedRequests();
+		$this->assertCount(1, $requests, 'the triggered prompt must have called the AI exactly once');
+		$this->assertStringContainsString($contact['n_family'], $requests[0]['messages'][1]['content'] ?? '',
+			"the converted contact's own family name must reach the AI in the user message");
 	}
 
 	/**
