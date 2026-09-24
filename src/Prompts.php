@@ -95,7 +95,10 @@ class Prompts extends Api\Storage\Json
 						case 'useremail':
 							return $GLOBALS['egw_info']['user']['account_email'];
 						case 'systemtime':
-							return gmdate('Y-m-d H:i:sZ');
+							// 'Z' is a PHP date()-format character (timezone offset in seconds), NOT
+							// a literal ISO-8601 "Z" suffix - the un-escaped version used to render
+							// eg. "07:11:510" (the literal offset "0" glued onto the seconds)
+							return gmdate('Y-m-d\TH:i:s\Z');
 						case 'usertimezone':
 							return $GLOBALS['egw_info']['user']['preferences']['common']['tz'] ?? 'UTC';
 						case 'userdate':
@@ -172,6 +175,22 @@ class Prompts extends Api\Storage\Json
 		return ($prompts['system_prompt']['text'] ?? throw new \Exception('Missing system prompt!'))."\n".
 			($prompts['system_prompt_addition']['text'] ?? '').
 			($tools && !empty($prompts['system_prompt_tools']['text']) ? "\n".$prompts['system_prompt_tools']['text']."\n" : '');
+	}
+
+	/**
+	 * Per-request context about the current user (name, language, timezone, ...)
+	 *
+	 * Deliberately NOT part of systemPrompt() / the "system" message: it varies per user (and
+	 * per request, for eg. {{usertimezone}} after a preference change), so it must NOT sit in the
+	 * cached system-prompt prefix - see Bo::process_predefined_prompt(), which prepends this to the
+	 * "user" message instead. Kept as its own prompt row (like system_prompt_addition) so an admin
+	 * can still customize the wording via the Prompts admin UI.
+	 *
+	 * @return string|null null if not configured/disabled
+	 */
+	public static function userContext() : ?string
+	{
+		return self::prompts(null, true)['system_prompt_user_context']['text'] ?? null;
 	}
 
 	/**

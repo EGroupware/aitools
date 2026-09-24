@@ -197,4 +197,66 @@ EOT;
 			"configured max_tokens '321' must be sent as a JSON number on the follow-up call too, ".
 			'not just the first one');
 	}
+
+	/**
+	 * system_prompt/system_prompt_tools must never contain any per-user/per-request value - that's
+	 * the actual root cause of the reported caching problem (system_prompt USED to embed
+	 * {{userfullname}}/{{useremail}}/{{username}}/{{userdate}}/{{usertime}}/{{systemtime}}, which
+	 * changed on every single request/user and defeated AI-server prefix caching entirely). Per-user
+	 * context now lives on the "user" message instead (Prompts::userContext()), which was always
+	 * per-request anyway, so nothing is lost - it's just no longer part of the (would-be-cached)
+	 * "system" message.
+	 */
+	public function testSystemMessageCarriesNoPerUserContext()
+	{
+		(new Bo())->process_predefined_prompt(['name' => 'test_prompt', 'text' => 'Say hi.'], 'first call');
+		(new Bo())->process_predefined_prompt(['name' => 'test_prompt', 'text' => 'Say hi.'], 'second call');
+
+		$requests = $this->loggedRequests();
+		$this->assertCount(2, $requests);
+		$system_1 = $requests[0]['messages'][0]['content'] ?? null;
+		$system_2 = $requests[1]['messages'][0]['content'] ?? null;
+
+		$this->assertSame('system', $requests[0]['messages'][0]['role'] ?? null);
+		$this->assertStringNotContainsString('{{', $system_1, 'an unresolved template variable leaked into the system prompt');
+		$this->assertStringNotContainsString(
+			$GLOBALS['egw_info']['user']['account_email'], $system_1,
+			'the system prompt must not carry per-user context - it must stay identical for every user'
+		);
+		$this->assertSame($system_1, $system_2,
+			'the system prompt must be byte-identical across requests to actually be cacheable');
+
+		// the relocated context must still reach the AI somewhere - just on the "user" message
+		$user_1 = $requests[0]['messages'][1]['content'] ?? '';
+		$this->assertStringContainsString($GLOBALS['egw_info']['user']['account_email'], $user_1,
+			'per-user context must still reach the AI, just via the user message, not the system one');
+	}
+
+	/**
+	 * getCurrentDateTime must be offered whenever any tool is, and must be answered LOCALLY - not
+	 * routed through Api\CalDAV\OpenAPI::toolCall() (which has no such REST operation and would
+	 * answer "Invalid operationId").
+	 */
+	public function testGetCurrentDateTimeToolIsOfferedAndAnsweredLocally()
+	{
+		(new Bo())->process_predefined_prompt(
+			['name' => 'test_prompt', 'text' => 'What time is it?', 'tools' => ['searchContacts']],
+			'irrelevant content'
+		);
+
+		$requests = $this->loggedRequests();
+		$this->assertGreaterThanOrEqual(2, count($requests));
+		$tool_names = array_column(array_column($requests[0]['tools'] ?? [], 'function'), 'name');
+		$this->assertContains('getCurrentDateTime', $tool_names);
+
+		// round 2's messages include the tool result sent back for round 1's call - find it
+		$tool_result = null;
+		foreach ($requests[1]['messages'] ?? [] as $m)
+		{
+			if (($m['role'] ?? '') === 'tool') { $tool_result = $m['content'] ?? ''; break; }
+		}
+		$this->assertNotNull($tool_result, 'expected a tool-result message in the follow-up round');
+		$this->assertStringNotContainsString('Invalid operationId', $tool_result,
+			'getCurrentDateTime must be answered locally, not routed through the REST/OpenAPI tool-call machinery');
+	}
 }
