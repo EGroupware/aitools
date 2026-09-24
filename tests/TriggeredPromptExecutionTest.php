@@ -75,12 +75,18 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 		}
 		$this->project_ids = [];
 
-		$invoices = new \EGroupware\Invoices\Bo();
-		foreach ($this->invoice_ids as $id)
+		// only true if testInvoicesAddTriggerActuallyCallsTheAi() actually ran (ie. Invoices was
+		// installed) - guards instantiating \EGroupware\Invoices\Bo, which does not exist at all
+		// when the (EPL, non-GPL) Invoices app is not checked out alongside this repo
+		if ($this->invoice_ids)
 		{
-			$invoices->delete($id);
+			$invoices = new \EGroupware\Invoices\Bo();
+			foreach ($this->invoice_ids as $id)
+			{
+				$invoices->delete($id);
+			}
+			$this->invoice_ids = [];
 		}
-		$this->invoice_ids = [];
 
 		if ($this->course_ids)
 		{
@@ -338,9 +344,18 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 
 	/**
 	 * Same end-to-end path, but for invoices (JsObjects::JsInvoice()).
+	 *
+	 * Invoices is an EPL (non-GPL) app: unlike infolog/calendar/addressbook/timesheet/
+	 * projectmanager (bundled in the main egroupware/egroupware repo, always present) it must never
+	 * be assumed to be checked out alongside this (GPL, separately-repo'd) test suite - eg. the
+	 * public repo's own CI never has it.
 	 */
 	public function testInvoicesAddTriggerActuallyCallsTheAi()
 	{
+		if (!class_exists(\EGroupware\Invoices\Bo::class))
+		{
+			$this->markTestSkipped('Invoices app not installed');
+		}
 		$invoice = $this->makeInvoice('TriggeredPromptExecutionTest invoice '.uniqid());
 		$prompt_id = $this->makePrompt(['triggers' => ['add'], 'apps' => ['invoices']]);
 
@@ -355,9 +370,16 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 
 	/**
 	 * Same end-to-end path, but for smallpart (JsObjects::JsCourse()).
+	 *
+	 * SmallParT lives in its own repository, same as this one - it must never be assumed present
+	 * just because this test suite is running.
 	 */
 	public function testSmallpartAddTriggerActuallyCallsTheAi()
 	{
+		if (!class_exists(\EGroupware\SmallParT\Bo::class))
+		{
+			$this->markTestSkipped('SmallParT app not installed');
+		}
 		$course = $this->makeCourse('TriggeredPromptExecutionTest course '.uniqid());
 		$prompt_id = $this->makePrompt(['triggers' => ['add'], 'apps' => ['smallpart']]);
 
