@@ -89,6 +89,54 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 	}
 
 	/**
+	 * A "delete" trigger must fire too, converting the entry's data exactly as an "add"/"update" one
+	 * would - infolog_bo::delete() itself calls Link::notify_update($app, $id, $info, 'delete') with
+	 * $info being the entry's state captured just BEFORE the (usually soft-)delete, so the data given
+	 * to runTriggeredPrompts() here is realistic even though this test never actually deletes the
+	 * entry itself (consistent with the other tests in this file, which also call
+	 * Hooks::runTriggeredPrompts() directly rather than exercising the full real add/edit/delete
+	 * plumbing).
+	 */
+	public function testDeleteTriggerActuallyCallsTheAi()
+	{
+		$entry = $this->makeInfolog('TriggeredPromptExecutionTest delete-trigger subject '.uniqid());
+		$prompt_id = $this->makePrompt(['triggers' => ['delete'], 'apps' => ['infolog']]);
+
+		Hooks::runTriggeredPrompts(['type' => 'delete', 'app' => 'infolog', 'id' => $entry['info_id'], 'data' => $entry],
+			[$prompt_id]);
+
+		$requests = $this->loggedRequests();
+		$this->assertCount(1, $requests, 'the delete-triggered prompt must have called the AI exactly once');
+		$this->assertStringContainsString($entry['info_subject'], $requests[0]['messages'][1]['content'] ?? '',
+			"the (pre-delete) converted infolog entry's own subject must reach the AI in the user message");
+	}
+
+	/**
+	 * Unlike "edit" (translated to "update"), a "delete" event type must reach checkTriggers()/the
+	 * deferred call UNCHANGED - Hooks::notifyAll()'s ternary only special-cases "edit".
+	 */
+	public function testDeleteEventTypeReachesDeferredCallUnchanged()
+	{
+		$prompt_id = $this->makePrompt(['triggers' => ['delete'], 'apps' => ['infolog']]);
+
+		$this->assertContains($prompt_id, Prompts::checkTriggers('infolog', 'delete'));
+
+		$callbacks = new \ReflectionProperty(Api\Egw::class, 'shutdown_callbacks');
+		$callbacks->setAccessible(true);
+		$before = $callbacks->getValue();
+
+		Hooks::notifyAll(['type' => 'delete', 'app' => 'infolog', 'id' => 999999, 'data' => []]);
+
+		$after = $callbacks->getValue();
+		$this->assertCount(count($before) + 1, $after, 'a "delete" event for a "delete"-triggered prompt must defer a run');
+		$this->assertContains($prompt_id, $after[0][2] ?? [],
+			'the deferred call must be for the "delete"-registered prompt');
+
+		// don't let it actually run (and call the AI) at process shutdown
+		$callbacks->setValue(null, $before);
+	}
+
+	/**
 	 * A disabled prompt must never fire, even if explicitly passed in $prompt_ids (eg. a stale list
 	 * captured before the prompt got disabled, in the window before the deferred on_shutdown() runs).
 	 */
