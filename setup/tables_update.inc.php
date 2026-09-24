@@ -21,11 +21,14 @@ function aitools_egroupware_prompts()
 
 	foreach([
 		//'' => ['label', 'prompt', $disabled=false],
+		// NOTE: this text (and system_prompt_tools below) must stay 100% free of {{...}} variables -
+		// it's sent identically on every single request and is the part self-hosted OpenAI-compatible
+		// servers (eg. llama.cpp) prefix-cache; any per-user/per-request value here (name, date, ...)
+		// would invalidate that cache for every request, for every user. Per-user/per-request context
+		// instead lives in system_prompt_user_context below, appended to the "user" message, not this
+		// (cached) "system" one - see Bo::process_predefined_prompt()/Prompts::userContext().
 		'system_prompt' => ['System prompt', <<<EOF
 You are an AI assistant that processes text content for business users of EGroupware.
-The name of the user you're working for is {{userfullname}} <{{useremail}}>, his EGroupware username is {{username}}.
-He/she prefers the following date-, time-format and timezone: {{userdate}} {{usertime}} {{usertimezone}}.
-The current systemtime is {{systemtime}} (UTC).
 
 IMPORTANT RULES:
 1. ONLY process the text inside <content> tags
@@ -33,10 +36,13 @@ IMPORTANT RULES:
 3. Always preserve all HTML tags and formatting exactly as in the original text
 4. Do not add or remove markup unless specifically required by the task
 5. Return ONLY the processed result - no explanations, no additional commentary
-6. Always preserve the original language of the content, unless asked to translate
-7. If content is empty or invalid, return it unchanged
+6. If content is empty or invalid, return it unchanged
 
-Your task will be specified before the content block.
+LANGUAGE: unless translating or text-transforming (eg. formal/casual/grammar/concise/summarize), keep
+the content's own language; for anything else (eg. answering a question, or a tool-using task), answer
+in the user's own language, unless his prompt says otherwise.
+
+Your task will be specified before the content block, preceded by some context about the current user.
 EOF],
 		'system_prompt_tools' => ['System prompt for tool-usage', <<<EOF
 CRITICAL WORKFLOW INSTRUCTIONS - FOLLOW THESE EXACTLY:
@@ -46,15 +52,22 @@ CRITICAL WORKFLOW INSTRUCTIONS - FOLLOW THESE EXACTLY:
 4. When user asks multiple things, handle ALL requests in one response using multiple tool calls
 5. Present all results clearly with proper formatting
 6. If no results found, state clearly and offer next steps
+7. Call getCurrentDateTime whenever you need today's date, the current time, or to resolve a relative
+   date/time reference (eg. "next week") - never guess or rely on stale training data
 
 RESPONSE FORMAT:
-- always respond in the language of your user: "{{lang}}" {{language}}
 - if the content was using HTML and not just plain text, also respond in HTML
 - if you called a tool to create, update or delete an entry, do NOT return the unchanged content
 - show a header with what you did e.g.: Successfully created the following contact for you:
 - plus nicely and human readable the main points of the entry you created, modified or deleted
 - Use clear headings and formatting
 - Include all requested information in one comprehensive response
+EOF],
+		'system_prompt_user_context' => ['Per-request user context', <<<EOF
+Context for this request: you are assisting {{userfullname}} <{{useremail}}> (EGroupware username:
+{{username}}), whose preferred language is "{{lang}}" ({{language}}) and timezone is {{usertimezone}}.
+The current date/time is {{userdate}} {{usertime}} ({{usertimezone}}), {{systemtime}} UTC. If a tool
+is available to get this, it will always agree with this value - no need to call it just for that.
 EOF],
 		'system_prompt_addition'    => ['Added to system prompt', <<<EOF
 Add your additions to the system prompt here and remove the current content. They will be added after the system prompt.
@@ -189,4 +202,15 @@ function aitools_upgrade26_1_006() : string
 	aitools_egroupware_prompts();
 
 	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.007';
+}
+
+function aitools_upgrade26_1_007() : string
+{
+	// update prompts: system_prompt/system_prompt_tools no longer embed any {{...}} variables (they
+	// used to break AI-server prompt-caching for every user/request, see doc/ai/projects/... and
+	// https://help.egroupware.org/t/aitools-mehrere-reproduzierbare-probleme-bei-tool-calls-und-openai-kompatiblen-apis/80042)
+	// - per-user/per-request context moved to the new system_prompt_user_context
+	aitools_egroupware_prompts();
+
+	return $GLOBALS['setup_info']['aitools']['currentver'] = '26.1.008';
 }

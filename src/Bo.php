@@ -38,6 +38,11 @@ class Bo
 	const TRANSLATION_PROMPT_PREFIX = 'aiassist.translate-';
 
 	/**
+	 * Name of the local (non-REST) getCurrentDateTime tool, see call_ai_api()/execute_tools()
+	 */
+	const CURRENT_DATE_TIME_TOOL = 'getCurrentDateTime';
+
+	/**
 	 * Process predefined prompts for text widgets
 	 * 
 	 * @param string|array $prompt predefined prompt or it's ID
@@ -89,7 +94,10 @@ class Bo
 			],
 			[
 				'role'    => 'user',
-				'content' => $prompt['text'] . "\n\n" . self::wrapContent($content)
+				// per-user/per-request context (name, language, timezone, ...) is deliberately part
+				// of the "user" message, not the cached "system" one - see Prompts::userContext()
+				'content' => (($context = Prompts::userContext()) ? $context."\n\n" : '') .
+					$prompt['text'] . "\n\n" . self::wrapContent($content)
 			]
 		];
 
@@ -697,8 +705,12 @@ class Bo
 		$tools = [];
 		if (!empty($config['tools']))
 		{
+			// getCurrentDateTime is always offered alongside whatever REST tools the prompt allows -
+			// it's read-only, side-effect-free and handled locally (execute_tools()), not via a REST
+			// round-trip like the rest, replacing the {{systemtime}}/{{userdate}}/{{usertime}} that
+			// used to be baked into the (would-be-cached) system prompt on every single call
 			$tools = [
-				'tools' => Api\CalDAV\OpenAPI::tools($config['tools']),
+				'tools' => array_merge([self::getCurrentDateTimeTool()], Api\CalDAV\OpenAPI::tools($config['tools'])),
 				'tool_choice' => 'auto',
 			];
 		}
@@ -808,7 +820,10 @@ class Bo
 				// Add timeout protection for each tool call
 				$start_time = microtime(true);
 
-				$result = Api\CalDAV\OpenAPI::toolCall($function_name, $arguments, $tool_filter??[], !isset($tool_filter));
+				// getCurrentDateTime is a local, non-REST tool (see call_ai_api()) - not routed
+				// through OpenAPI::toolCall(), which would only ever find "Invalid operationId" for it
+				$result = $function_name === self::CURRENT_DATE_TIME_TOOL ? self::getCurrentDateTimeInternal() :
+					Api\CalDAV\OpenAPI::toolCall($function_name, $arguments, $tool_filter??[], !isset($tool_filter));
 
 				$execution_time = round((microtime(true) - $start_time) * 1000);
 				error_log("AI Assistant Debug - Tool $function_name executed in {$execution_time}ms");
@@ -831,6 +846,49 @@ class Bo
 		}
 
 		return $results;
+	}
+
+	/**
+	 * OpenAI tool description for the local (non-REST) getCurrentDateTime tool
+	 *
+	 * @return array
+	 */
+	protected static function getCurrentDateTimeTool() : array
+	{
+		return [
+			'type' => 'function',
+			'function' => [
+				'name' => self::CURRENT_DATE_TIME_TOOL,
+				'description' => 'Get the current date and time, in UTC and in the user\'s own '.
+					'timezone/preferred format. Call this whenever you need "today", "now", or to '.
+					'resolve a relative date/time reference - never guess or rely on stale training data.',
+				'parameters' => [
+					'type' => 'object',
+					'properties' => (object)[],
+					'required' => [],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Execute the local (non-REST) getCurrentDateTime tool
+	 *
+	 * @return array
+	 */
+	protected static function getCurrentDateTimeInternal() : array
+	{
+		$tz = $GLOBALS['egw_info']['user']['preferences']['common']['tz'] ?? 'UTC';
+
+		return [
+			'success' => true,
+			'utc' => gmdate('Y-m-d\TH:i:s\Z'),
+			'user_timezone' => $tz,
+			'user_date' => Api\DateTime::to('now', true),
+			'user_time' => Api\DateTime::to('now', false),
+			'message' => sprintf('Current time: %s UTC (%s %s in timezone %s).',
+				gmdate('Y-m-d H:i:s'), Api\DateTime::to('now', true), Api\DateTime::to('now', false), $tz),
+		];
 	}
 
 	/**
