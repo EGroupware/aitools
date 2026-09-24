@@ -121,4 +121,42 @@ class AvailablePromptsTest extends \EGroupware\Api\AppTest
 			$this->assertNotEmpty($prompt['id']);
 		}
 	}
+
+	/**
+	 * Regression test: stock prompt labels (eg. "Summarize text") only ever had lang() entries
+	 * under the "aitools" app - but the et2-ai widget (and so this method) is designed to run with
+	 * ANY other app as the current one, eg. mail's preview pane. Api\Translation::init() only ever
+	 * auto-loads 'common'/'etemplate'/the CURRENT app/'custom', never an unrelated app just because
+	 * a widget from it happens to be rendered - so every stock label came back UNTRANSLATED for any
+	 * host app other than aitools itself. Reported live 2026-09-24 (ralf, boulder.egroupware.org):
+	 * German UI, but "Summarize text"/"Generate a subject"/"Professional reply"/etc. all still
+	 * showed in English in mail's AI menu - confirmed via egw.prompts() in the actual browser
+	 * session, currentapp="mail". "Übersetzen" (Translate) happened to still work only because that
+	 * exact word also has an unrelated 'common' app entry from elsewhere.
+	 */
+	public function testStockLabelsAreTranslatedRegardlessOfCurrentApp()
+	{
+		$orig_currentapp = $GLOBALS['egw_info']['flags']['currentapp'] ?? null;
+		$orig_lang = $GLOBALS['egw_info']['user']['preferences']['common']['lang'] ?? null;
+		try
+		{
+			// simulate the widget being rendered from within mail's preview pane, not aitools itself
+			$GLOBALS['egw_info']['flags']['currentapp'] = 'mail';
+			$GLOBALS['egw_info']['user']['preferences']['common']['lang'] = 'de';
+			Api\Translation::init(true);
+
+			$prompts = (new Bo())->get_predefined_prompts(false);
+
+			$this->assertArrayHasKey('aiassist.summarize', $prompts);
+			$this->assertSame('Text zusammenfassen', $prompts['aiassist.summarize']['label'],
+				'a stock prompt label must be translated even when the widget is rendered from a '.
+				'different app\'s page (eg. mail\'s preview pane)');
+		}
+		finally
+		{
+			$GLOBALS['egw_info']['flags']['currentapp'] = $orig_currentapp;
+			$GLOBALS['egw_info']['user']['preferences']['common']['lang'] = $orig_lang;
+			Api\Translation::init(true);
+		}
+	}
 }

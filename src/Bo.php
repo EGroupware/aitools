@@ -215,6 +215,16 @@ class Bo
 	 */
 	public function get_predefined_prompts(bool $return_prompt=true, bool $only_translation=false) : array
 	{
+		// Stock prompt labels (eg. "Summarize text") only have lang() entries under THIS app - but
+		// this method can run with any other app as the current one (the et2-ai widget is designed
+		// to be embedded in any app's template, eg. mail's preview pane - see availablePrompts()'s
+		// own docblock on ticket #124681), and Api\Translation::init() only ever auto-loads
+		// 'common'/'etemplate'/the CURRENT app/'custom', never an unrelated app just because a
+		// widget from it happens to be rendered. Without this, every stock label came back
+		// untranslated for any host app other than aitools itself - "Übersetzen" only ever worked by
+		// accident, because that exact word also has an unrelated 'common' entry from elsewhere.
+		Api\Translation::add_app(self::APP);
+
 		// get_ai_config() throws when the main provider isn't configured (eg. DeepL-only or nothing
 		// configured at all) - computed once, tolerantly, so an unconfigured main provider does NOT
 		// silently wipe the ENTIRE prompts list (every prompt without its own 'timeout' override
@@ -227,7 +237,7 @@ class Bo
 		// return either just the prompt-text or id, label and apps
 		$map = static fn($prompts) => array_map(static fn($prompt) => $return_prompt ? $prompt : [
 			'id' => $prompt['name'],
-			'label' => $prompt['label'],
+			'label' => lang($prompt['label']),
 			'apps' => !empty($prompt['apps']) ? explode(',', $prompt['apps']) : null,
 			'timeout' => $prompt['timeout'] ?? $default_timeout ?? ($only_translation ? 90 : 60),
 		]+(isset($prompt['children']) ? ['children' => $prompt['children']] : []), $prompts);
