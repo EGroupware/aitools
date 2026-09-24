@@ -240,7 +240,16 @@ class TriggeredPromptExecutionTest extends FakeAiServerTestCase
 	 */
 	public function testAccountRestrictedPromptOnlyFiresForMatchingAccount()
 	{
-		$other_account_id = -1; // no real account can ever match this
+		// a fixed sentinel like -1 is NOT safe here: EGroupware uses NEGATIVE ids for groups, so -1
+		// can be a real, existing group the current user happens to belong to, depending on what's
+		// seeded in a given environment (confirmed live: passed against the local docker test
+		// instance, failed in CI - https://github.com/EGroupware/egroupware/actions/runs/35972208103/job/107544290911,
+		// because CI's seed data makes the demo user a member of group -1). Compute an id that's
+		// guaranteed to not be one of the CURRENT user's own memberships, the same way
+		// Hooks::runTriggeredPrompts() itself does, instead of guessing a supposedly-impossible one.
+		$own_account_ids = Api\Accounts::getInstance()->memberships($GLOBALS['egw_info']['user']['account_id'], true);
+		$own_account_ids[] = $GLOBALS['egw_info']['user']['account_id'];
+		$other_account_id = min($own_account_ids) - 1000000;
 		$entry = $this->makeInfolog('TriggeredPromptExecutionTest account-restricted subject '.uniqid());
 		$prompt_id = $this->makePrompt([
 			'triggers' => ['add'], 'apps' => ['infolog'], 'account_id' => [$other_account_id],
