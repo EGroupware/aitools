@@ -301,6 +301,14 @@ class Bo
 				$lang_codes = array_unique($lang_codes);
 			}
 
+			// configured timeout, unless the translation prompt has its own - tolerantly, like in
+			// get_predefined_prompts(), get_ai_config() throws for a DeepL-only installation
+			$timeout = $prompt['timeout'] ?? null;
+			if (!isset($timeout))
+			{
+				try { $timeout = self::get_ai_config()['timeout']; } catch (\Throwable $e) {}
+			}
+
 			$all_langs = Api\Translation::get_installed_langs();
 			foreach ($lang_codes as $code)
 			{
@@ -309,7 +317,7 @@ class Bo
 					$prompts[self::TRANSLATION_PROMPT_PREFIX . $code] = [
 						'name' => self::TRANSLATION_PROMPT_PREFIX . $code,
 						'label' => $all_langs[$code],
-						'timeout' => $prompt['timeout'] ?? 90,
+						'timeout' => $timeout ?? 90,
 						'text' => str_replace('{$lang}', $all_langs[$code], $template),
 					];
 				}
@@ -339,6 +347,8 @@ class Bo
 			'max_tokens' => $config['max_tokens'] ?? null,
 			'temperature' => $config['temperature'] ?? null,
 			'reasoning' => $config['reasoning'] ?? null,
+			// seconds, null: chatCompletions()' default (60, 90 for translations)
+			'timeout' => ($config['timeout'] ?? '') !== '' ? (int)$config['timeout'] : null,
 		];
 	}
 	
@@ -365,6 +375,205 @@ class Bo
 		}
 
 		return true;
+	}
+
+	/**
+	 * Test connection button of the config page: run the connection test on the (maybe unsaved) form values
+	 *
+	 * Admins only - it sends requests to whatever URL the form holds.
+	 *
+	 * @param array $settings values of the config form, keys without "newsettings[]"
+	 */
+	public static function ajaxTestConnection(array $settings)
+	{
+		if (empty($GLOBALS['egw_info']['user']['apps']['admin']))
+		{
+			throw new Api\Exception\NoPermission\Admin();
+		}
+		Api\Translation::add_app(self::APP);
+		Api\Json\Response::get()->data(self::debugConnection(self::configFromSettings($settings)));
+	}
+
+	/**
+	 * Config as get_ai_config() returns it, from config form values
+	 *
+	 * An empty API key, or the asterisks Api\Etemplate\Widget\Password sends instead of the stored
+	 * one, uses the stored key, so the test works without typing it again.
+	 *
+	 * @param array $settings values of the config form
+	 * @return array
+	 */
+	public static function configFromSettings(array $settings) : array
+	{
+		$stored = Api\Config::read(self::APP);
+		[$provider, $model] = explode(':', (string)($settings['ai_model'] ?? ''), 2)+[null, null];
+		$number = static fn($value) => isset($value) && $value !== '' ? $value : null;
+		$key = trim((string)($settings['ai_api_key'] ?? ''));
+
+		return [
+			'api_url' => rtrim(trim((string)($settings['ai_api_url'] ?? '')) ?: (Hooks::getProviderUrlMapping()[$provider] ?? ''), '/'),
+			'api_key' => $key === '' || preg_match('/^\*+$/', $key) ? trim($stored['ai_api_key'] ?? '') : $key,
+			'model'   => $provider === 'custom' || !isset($model) ? trim((string)($settings['ai_custom_model'] ?? '')) : $model,
+			'provider' => $provider,
+			'reasoning' => ($settings['reasoning'] ?? '') ?: null,
+			'max_tokens' => $number($settings['max_tokens'] ?? null),
+			'temperature' => $number($settings['temperature'] ?? null),
+			'timeout' => (int)($number($settings['timeout'] ?? null) ?? 60),
+		];
+	}
+
+	/**
+	 * Connection test with debug information: models list, then a short chat completion
+	 *
+	 * The chat completion is built by chatCompletionsData(), so it carries the same parameters
+	 * as a real request and fails the same way.
+	 *
+	 * @param array $config see configFromSettings()
+	 * @return array values for keys "ok" (bool) and "steps", each with keys "title", "ok" (bool or
+	 *  null for info only), "summary" and "details" (plain text)
+	 */
+	public static function debugConnection(array $config) : array
+	{
+		$key = $config['api_key'] ?? '';
+		$steps = [[
+			'title' => lang('Configuration'),
+			'ok' => !empty($config['api_url']) && !empty($config['model']) ? null : false,
+			'summary' => !empty($config['api_url']) && !empty($config['model']) ? $config['model'].' @ '.$config['api_url'] :
+				lang('Missing AI configuration: API URL or Model!'),
+			'details' => implode("\n", [
+				'Provider: '.($config['provider'] ?: '-'),
+				'Model: '.($config['model'] ?: '-'),
+				'API URL: '.($config['api_url'] ?: '-'),
+				// last 4 characters only of a key long enough that they give nothing away
+				'API key: '.($key === '' ? 'none' : strlen($key).' characters'.(strlen($key) >= 16 ? ', ...'.substr($key, -4) : '')),
+				'Reasoning effort: '.($config['reasoning'] ?? 'default (not sent)'),
+				'Max tokens: '.($config['max_tokens'] ?? 'default'),
+				'Temperature: '.($config['temperature'] ?? 'default'),
+				'Timeout: '.$config['timeout'].'s',
+				'PHP '.PHP_VERSION.', curl '.(curl_version()['version'] ?? '?').', '.(curl_version()['ssl_version'] ?? ''),
+			]),
+		]];
+		if (empty($config['api_url']) || empty($config['model']))
+		{
+			return ['ok' => false, 'steps' => $steps];
+		}
+
+		// 1. GET /models, as models() does
+		$headers = ['Content-Type: application/json'];
+		if ($key !== '') $headers[] = 'Authorization: Bearer '.preg_replace('/[\r\n]/', '', $key);
+		$res = self::debugRequest($config['api_url'].'/models', $headers, null, 15);
+		$models = null;
+		if ($res['http_code'] === 200 && is_array($json = json_decode($res['body'], true)))
+		{
+			$models = array_map(static fn($model) => $model['id'] ?? '?', $json['data'] ?? []);
+		}
+		$steps[] = [
+			'title' => 'GET /models',
+			'ok' => isset($models) && in_array($config['model'], $models, true),
+			'summary' => !isset($models) ? self::debugFailure($res) :
+				(in_array($config['model'], $models, true) ? lang('Model %1 found (%2 models)', $config['model'], count($models)) :
+					lang("Invalid model %1, not supported by endpoint!", $config['model'])),
+			'details' => self::debugRequestDetails($res).(isset($models) ? "\n\nModels:\n".implode("\n", $models) : ''),
+		];
+
+		// 2. POST /chat/completions, as chatCompletions() does
+		$data = self::chatCompletionsData($config, [['role' => 'user', 'content' => 'Reply with the single word: OK']]);
+		$res = self::debugRequest($config['api_url'].'/chat/completions', [
+			'Content-Type: application/json',
+			'Authorization: Bearer '.preg_replace('/[\r\n]/', '', $key),
+			'Expect:',
+		], json_encode($data), $config['timeout']);
+		$json = json_decode($res['body'] ?? '', true);
+		$message = $json['choices'][0]['message'] ?? null;
+		$finish_reason = $json['choices'][0]['finish_reason'] ?? null;
+		$ok = $res['http_code'] === 200 && isset($message) && trim((string)($message['content'] ?? '')) !== '';
+		$steps[] = [
+			'title' => 'POST /chat/completions',
+			'ok' => $ok,
+			'summary' => $ok ? lang('Answer: %1', mb_substr(trim($message['content']), 0, 100)) :
+				($res['http_code'] === 200 && isset($message) ? lang('Empty answer, finish reason: %1', $finish_reason ?? '-') :
+					self::debugFailure($res)),
+			'details' => "Request body:\n".json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
+				"\n\n".self::debugRequestDetails($res).
+				(isset($message) ? "\n\nContent: ".($message['content'] ?? '').
+					(!empty($message['reasoning']) || !empty($message['reasoning_content']) ?
+						"\nReasoning: ".mb_substr($message['reasoning'] ?? $message['reasoning_content'], 0, 2000) : '').
+					"\nFinish reason: ".($finish_reason ?? '-').
+					"\nUsage: ".json_encode($json['usage'] ?? null) : ''),
+		];
+
+		return ['ok' => $steps[1]['ok'] && $steps[2]['ok'], 'steps' => $steps];
+	}
+
+	/**
+	 * Run one request for the connection test and collect what curl knows about it
+	 *
+	 * @param string $url
+	 * @param array $headers
+	 * @param ?string $body null for GET, else POST
+	 * @param int $timeout
+	 * @return array values for keys "url", "http_code", "body", "error", "time", "ip", "content_type"
+	 */
+	protected static function debugRequest(string $url, array $headers, ?string $body, int $timeout) : array
+	{
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+		curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+		if (isset($body))
+		{
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+		}
+		$response = curl_exec($ch);
+		$result = [
+			'url' => $url,
+			'http_code' => (int)curl_getinfo($ch, CURLINFO_HTTP_CODE),
+			'body' => is_string($response) ? $response : null,
+			'error' => curl_error($ch),
+			'time' => round(curl_getinfo($ch, CURLINFO_TOTAL_TIME), 2),
+			'ip' => curl_getinfo($ch, CURLINFO_PRIMARY_IP),
+			'content_type' => curl_getinfo($ch, CURLINFO_CONTENT_TYPE),
+		];
+		return $result;
+	}
+
+	/**
+	 * One line on why a connection test request failed
+	 *
+	 * @param array $res see debugRequest()
+	 * @return string
+	 */
+	protected static function debugFailure(array $res) : string
+	{
+		if ($res['error']) return $res['error'];
+
+		$json = json_decode($res['body'] ?? '', true);
+		$error = $json['error']['message'] ?? $json['messages']['message'] ?? $json['error'] ?? null;
+		return 'HTTP '.$res['http_code'].(is_string($error) ? ': '.$error : (($res['body'] ?? '') !== '' ? ': '.mb_substr($res['body'], 0, 200) : ''));
+	}
+
+	/**
+	 * Plain text details of a connection test request
+	 *
+	 * @param array $res see debugRequest()
+	 * @return string
+	 */
+	protected static function debugRequestDetails(array $res) : string
+	{
+		return implode("\n", array_filter([
+			'URL: '.$res['url'],
+			'IP: '.($res['ip'] ?: '-'),
+			'HTTP status: '.($res['http_code'] ?: '-'),
+			'Content-Type: '.($res['content_type'] ?: '-'),
+			'Time: '.$res['time'].'s',
+			$res['error'] ? 'curl error: '.$res['error'] : null,
+			"Response:\n".(isset($res['body']) ? mb_substr($res['body'], 0, 4000).(strlen($res['body']) > 4000 ? "\n[...]" : '') : '-'),
+		]));
 	}
 
 
@@ -725,21 +934,7 @@ class Bo
 			];
 		}
 
-		$data = array_filter($tools+[
-			'model' => $config['model'],
-			'messages' => $messages,
-			// /chat/completions takes the effort as flat "reasoning_effort" - "reasoning" is an object
-			// ({"effort": ...}) there, Ollama rejects a string with "cannot unmarshal string"
-			'reasoning_effort' => $config['reasoning'],
-			// Translation is deterministic - use low temperature for faster, more consistent results
-			'temperature' => (float)($config['temperature'] ?? ($is_translation ? 0.1 : 0.7)),
-			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000)),
-		]);
-		if (isset($config['top_p']))
-		{
-			$data['top_p'] = (float)$config['top_p'];
-		}
+		$data = self::chatCompletionsData($config, $messages, $is_translation, $tools);
 
 		// loop for tool-calls
 		$max_calls = 5;
@@ -794,17 +989,7 @@ class Bo
 				$ai_message['tool_calls'] = $tool_results;
 
 				// Continue with tools still available so AI can chain sequential tool calls
-				$data = array_filter($tools+[
-					'model' => $config['model'],
-					'messages' => $messages,
-					'reasoning_effort' => $config['reasoning'],
-					'temperature' => (float)($config['temperature'] ?? ($is_translation ? 0.1 : 0.7)),
-					'max_tokens' => (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000)),
-				]);
-				if (isset($config['top_p']))
-				{
-					$data['top_p'] = (float)$config['top_p'];
-				}
+				$data = self::chatCompletionsData($config, $messages, $is_translation, $tools);
 			}
 		}
 		while ($max_calls-- > 0 && !empty($ai_message['tool_calls']) && !empty($config['tools']));
@@ -814,6 +999,35 @@ class Bo
 			'tool_calls' => $ai_message['tool_calls'] ?? null,
 			'usage' => $usage ?? null
 		];
+	}
+
+	/**
+	 * Body of a /chat/completions request, as call_ai_api() and the connection test send it
+	 *
+	 * @param array $config values for keys "model", "reasoning", "temperature", "max_tokens", "top_p"
+	 * @param array $messages
+	 * @param bool $is_translation
+	 * @param array $tools values for keys "tools" and "tool_choice", or empty
+	 * @return array
+	 */
+	protected static function chatCompletionsData(array $config, array $messages, bool $is_translation=false, array $tools=[]) : array
+	{
+		$data = array_filter($tools+[
+			'model' => $config['model'],
+			'messages' => $messages,
+			// /chat/completions takes the effort as flat "reasoning_effort" - "reasoning" is an object
+			// ({"effort": ...}) there, Ollama rejects a string with "cannot unmarshal string"
+			'reasoning_effort' => $config['reasoning'] ?? null,
+			// Translation is deterministic - use low temperature for faster, more consistent results
+			'temperature' => (float)($config['temperature'] ?? ($is_translation ? 0.1 : 0.7)),
+			// Translations typically match input length - reduce tokens for faster processing
+			'max_tokens' => (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000)),
+		]);
+		if (isset($config['top_p']))
+		{
+			$data['top_p'] = (float)$config['top_p'];
+		}
+		return $data;
 	}
 
 	/**

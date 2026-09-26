@@ -1,6 +1,12 @@
 ai service configuration	aitools	el	Διαμόρφωση υπηρεσίας τεχνητής νοημοσύνης
 aitools	common	el	Εργαλεία τεχνητής νοημοσύνης
+answer: %1	aitools	el	Απάντηση: %1
+configuration	aitools	el	Διαμόρφωση
+connection failed	aitools	el	Η σύνδεση απέτυχε
+connection ok	aitools	el	Η σύνδεση είναι εντάξει
+copy debug information	aitools	el	Αντιγραφή πληροφοριών αποσφαλμάτωσης
 deepl.com configuration	aitools	el	Διαμόρφωση DeepL.com
+empty answer, finish reason: %1	aitools	el	Κενή απάντηση, αιτία τερματισμού: %1
 fix grammar & spelling	aitools	el	Διόρθωση γραμματικής και ορθογραφίας
 generate	aitools	el	Δημιουργία
 generate a subject	aitools	el	Δημιουργία θέματος
@@ -11,9 +17,13 @@ make more casual	aitools	el	Πιο ανεπίσημη διατύπωση
 make more formal	aitools	el	Πιο επίσημη διατύπωση
 maximum number of tokens	aitools	el	Μέγιστος αριθμός συμβόλων
 meeting follow-up	aitools	el	Παρακολούθηση συνάντησης
+model %1 found (%2 models)	aitools	el	Το μοντέλο %1 βρέθηκε (%2 μοντέλα)
 processing stops without result(!), if this number of tokens is reached.	aitools	el	Η επεξεργασία σταματά χωρίς αποτέλεσμα(!), εάν επιτευχθεί αυτός ο αριθμός συμβόλων.
 professional reply	aitools	el	Επαγγελματική απάντηση
 summarize text	aitools	el	Σύνοψη κειμένου
+test connection	aitools	el	Έλεγχος σύνδεσης
+testing connection, this can take up to the configured timeout ...	aitools	el	Έλεγχος σύνδεσης, μπορεί να διαρκέσει έως το ορισμένο χρονικό όριο ...
+tests the values above, also before they are saved.	aitools	el	Ελέγχει τις παραπάνω τιμές, και πριν αποθηκευτούν.
 thank you note	aitools	el	Ευχαριστήρια επιστολή
 translate	aitools	el	Μετάφραση
 translation languages	aitools	el	Γλώσσες μετάφρασης
