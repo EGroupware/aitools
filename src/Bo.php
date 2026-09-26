@@ -471,8 +471,8 @@ class Bo
 				'API dialect: '.self::apiDialect($config, $reason).' ('.$reason.')',
 				// last 4 characters only of a key long enough that they give nothing away
 				'API key: '.($key === '' ? (!empty($config['stored_key_withheld']) ?
-					'not sent - the stored key only goes to the stored API URL, enter it to test another one' : 'none') :
-					strlen($key).' characters'.(strlen($key) >= 16 ? ', ...'.substr($key, -4) : '')),
+					'not sent - the stored key only goes to the stored API URL, enter it to test another one' : 'not set') :
+					'set ('.strlen($key).' characters'.(strlen($key) >= 16 ? ', ends with ...'.substr($key, -4) : '').')'),
 				'Reasoning effort: '.($config['reasoning'] ?? 'default (not sent)'),
 				'Max tokens: '.($config['max_tokens'] ?? 'default'),
 				'Temperature: '.($config['temperature'] ?? 'default'),

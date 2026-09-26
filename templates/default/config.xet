@@ -14,10 +14,11 @@
 				</row>
 				<row>
 					<et2-description  value="AI Model Provider" label="%s:"></et2-description>
-					<et2-vbox>
-						<et2-select  id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
-						<et2-textbox  id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
-					</et2-vbox>
+					<et2-select  id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
+				</row>
+				<row>
+					<et2-description  id="custom_model_label" for="newsettings[ai_custom_model]" value="Model name" label="%s:"></et2-description>
+					<et2-textbox  id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
 				</row>
 				<row>
 					<et2-description  value="AI API URL" label="%s:"></et2-description>
