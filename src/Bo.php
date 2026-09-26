@@ -50,6 +50,66 @@ class Bo
 	const TIMEOUT_MAX = 600;
 
 	/**
+	 * Fill the {{placeholders}} of a prompt text with the fields of a record
+	 *
+	 * Uses the app's merge class, so the placeholders are the ones of document merge (eg. {{info_subject}},
+	 * {{info_from}}, {{info_id}}) and every app with a merge class supports them without code of its own.
+	 * Only done if the user may run the app and read the entry (Link::file_access(): the app's own
+	 * file_access hook, else its title);
+	 * otherwise, or for an app without a merge class, the text is returned unchanged.
+	 *
+	 * @param string $text prompt text
+	 * @param array $record values for keys "app" and "id", as sent by the Et2Ai widget
+	 * @return string
+	 */
+	public static function mergeRecord(string $text, array $record) : string
+	{
+		$app = (string)($record['app'] ?? '');
+		$id = (string)($record['id'] ?? '');
+		if ($app === '' || $id === '' || (strpos($text, '{{') === false && strpos($text, '$$') === false) ||
+			empty($GLOBALS['egw_info']['user']['apps'][$app]) || !Api\Link::file_access($app, $id, Api\Acl::READ))
+		{
+			return $text;
+		}
+		$text = self::stripSharePlaceholders($text);
+		try {
+			$merge = Api\Storage\Merge::get_app_class($app);
+			// get_app_class() falls back to the addressbook merge, which would read the id as a contact
+			if ($app !== 'addressbook' && get_class($merge) === Api\Contacts\Merge::class)
+			{
+				return $text;
+			}
+			$err = null;
+			// charset: without one, plain-text merge converts to the (non utf-8) default one
+			$merged = $merge->merge_string($text, [$id], $err, 'text/plain', null, Api\Translation::charset());
+			if ($merged === false || !is_string($merged) || $err)
+			{
+				error_log(__METHOD__."('$app', '$id') ".($err ?: 'merge failed'));
+				return $text;
+			}
+			return $merged;
+		}
+		catch (\Throwable $e) {
+			error_log(__METHOD__."('$app', '$id') ".$e->getMessage());
+			return $text;
+		}
+	}
+
+	/**
+	 * Remove the share placeholders ($$share$$, $$share/writable$$, {{share/...}}) of a prompt text
+	 *
+	 * Merging one CREATES a share link of the entry - a writable one for $$share/writable$$ - and
+	 * a prompt is not always written by the user running it.
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	public static function stripSharePlaceholders(string $text) : string
+	{
+		return preg_replace('/(\$\$|\{\{)share(\/[^$}]*)?(\$\$|\}\})/i', '', $text);
+	}
+
+	/**
 	 * Process predefined prompts for text widgets
 	 * 
 	 * @param string|array $prompt predefined prompt or it's ID
@@ -92,6 +152,11 @@ class Bo
 				throw new \Exception('Unknown prompt ID: ' . htmlspecialchars($prompt_id, ENT_QUOTES, 'UTF-8'));
 			}
 			$prompt = $prompts[$prompt_id];
+		}
+		// {{placeholders}} of the record the content belongs to, eg. {{info_subject}} - see mergeRecord()
+		if (!empty($options['record']) && is_array($options['record']))
+		{
+			$prompt['text'] = self::mergeRecord($prompt['text'], $options['record']);
 		}
 		// For other tasks: use full system prompt with all protections
 		$messages = [

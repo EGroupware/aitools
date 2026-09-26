@@ -110,6 +110,9 @@ class Prompts extends Api\Storage\Json
 						case 'language':
 							return Api\Translation::get_installed_langs()[$GLOBALS['egw_info']['user']['preferences']['common']['lang']] ??
 								$GLOBALS['egw_info']['user']['preferences']['common']['lang'];
+						default:
+							// not ours: a placeholder of the record, filled by Bo::mergeRecord() - it was wiped here
+							return $matches[0];
 					}
 				}, $prompt['text']);
 			}
