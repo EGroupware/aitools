@@ -347,6 +347,8 @@ class Bo
 			'max_tokens' => $config['max_tokens'] ?? null,
 			'temperature' => $config['temperature'] ?? null,
 			'reasoning' => $config['reasoning'] ?? null,
+			// "auto", "openai", "anthropic" or "generic", see apiDialect()
+			'api_dialect' => $config['api_dialect'] ?? null,
 			// seconds, null: chatCompletions()' default (60, 90 for translations)
 			'timeout' => ($config['timeout'] ?? '') !== '' ? (int)$config['timeout'] : null,
 		];
@@ -416,6 +418,7 @@ class Bo
 			'model'   => $provider === 'custom' || !isset($model) ? trim((string)($settings['ai_custom_model'] ?? '')) : $model,
 			'provider' => $provider,
 			'reasoning' => ($settings['reasoning'] ?? '') ?: null,
+			'api_dialect' => ($settings['api_dialect'] ?? '') ?: null,
 			'max_tokens' => $number($settings['max_tokens'] ?? null),
 			'temperature' => $number($settings['temperature'] ?? null),
 			'timeout' => (int)($number($settings['timeout'] ?? null) ?? 60),
@@ -444,6 +447,7 @@ class Bo
 				'Provider: '.($config['provider'] ?: '-'),
 				'Model: '.($config['model'] ?: '-'),
 				'API URL: '.($config['api_url'] ?: '-'),
+				'API dialect: '.self::apiDialect($config, $reason).' ('.$reason.')',
 				// last 4 characters only of a key long enough that they give nothing away
 				'API key: '.($key === '' ? 'none' : strlen($key).' characters'.(strlen($key) >= 16 ? ', ...'.substr($key, -4) : '')),
 				'Reasoning effort: '.($config['reasoning'] ?? 'default (not sent)'),
@@ -1004,7 +1008,15 @@ class Bo
 	/**
 	 * Body of a /chat/completions request, as call_ai_api() and the connection test send it
 	 *
-	 * @param array $config values for keys "model", "reasoning", "temperature", "max_tokens", "top_p"
+	 * The fields differ per API dialect (see apiDialect()):
+	 * - generic (Ollama, llama.cpp, vLLM, proxies): "reasoning_effort", "max_tokens", sampling parameters
+	 * - openai: "max_completion_tokens" ("max_tokens" is deprecated and rejected by reasoning models),
+	 *   "reasoning_effort" for reasoning models only, sampling parameters for the others only
+	 * - anthropic (OpenAI compatible endpoint): ignores "reasoning_effort", the effort switches on
+	 *   "thinking" instead, which takes no sampling parameters, and newer models take none at all
+	 *
+	 * @param array $config values for keys "model", "reasoning", "temperature", "max_tokens", "top_p",
+	 *  "provider", "api_url", "api_dialect"
 	 * @param array $messages
 	 * @param bool $is_translation
 	 * @param array $tools values for keys "tools" and "tool_choice", or empty
@@ -1012,22 +1024,148 @@ class Bo
 	 */
 	protected static function chatCompletionsData(array $config, array $messages, bool $is_translation=false, array $tools=[]) : array
 	{
-		$data = array_filter($tools+[
-			'model' => $config['model'],
-			'messages' => $messages,
-			// /chat/completions takes the effort as flat "reasoning_effort" - "reasoning" is an object
-			// ({"effort": ...}) there, Ollama rejects a string with "cannot unmarshal string"
-			'reasoning_effort' => $config['reasoning'] ?? null,
+		$effort = ($config['reasoning'] ?? '') ?: null;
+		// Translations typically match input length - reduce tokens for faster processing
+		$max_tokens = (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000));
+		$sampling = array_filter([
 			// Translation is deterministic - use low temperature for faster, more consistent results
 			'temperature' => (float)($config['temperature'] ?? ($is_translation ? 0.1 : 0.7)),
-			// Translations typically match input length - reduce tokens for faster processing
-			'max_tokens' => (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000)),
+			'top_p' => isset($config['top_p']) ? (float)$config['top_p'] : null,
 		]);
-		if (isset($config['top_p']))
+
+		$data = $tools+[
+			'model' => $config['model'],
+			'messages' => $messages,
+		];
+		switch (self::apiDialect($config))
 		{
-			$data['top_p'] = (float)$config['top_p'];
+			case 'openai':
+				$data['max_completion_tokens'] = $max_tokens;
+				if (self::isOpenAiReasoningModel($config['model']))
+				{
+					// reasoning models reject a non-default temperature/top_p
+					if ($effort) $data['reasoning_effort'] = $effort;
+				}
+				else
+				{
+					// and the others reject reasoning_effort
+					$data += $sampling;
+				}
+				break;
+
+			case 'anthropic':
+				// "none" sends nothing: Claude 5 models think by default, and some reject {"type": "disabled"}
+				if ($effort && $effort !== 'none')
+				{
+					if (self::isAnthropicBudgetThinkingModel($config['model']))
+					{
+						// budget_tokens must be at least 1024 and below max_tokens
+						$budget = max(1024, min(self::ANTHROPIC_THINKING_BUDGETS[$effort] ?? 8192, $max_tokens - 1024));
+						$max_tokens = max($max_tokens, $budget + 1024);
+						$data['thinking'] = ['type' => 'enabled', 'budget_tokens' => $budget];
+					}
+					else
+					{
+						// the depth can not be set through the OpenAI compatible endpoint
+						$data['thinking'] = ['type' => 'adaptive'];
+					}
+				}
+				$data['max_tokens'] = $max_tokens;
+				if (!isset($data['thinking']) && !self::isAnthropicNoSamplingModel($config['model']))
+				{
+					$data += $sampling;
+				}
+				break;
+
+			default:
+				// /chat/completions takes the effort as flat "reasoning_effort" - "reasoning" is an object
+				// ({"effort": ...}) there, Ollama rejects a string with "cannot unmarshal string"
+				if ($effort) $data['reasoning_effort'] = $effort;
+				$data += $sampling;
+				$data['max_tokens'] = $max_tokens;
+				break;
 		}
 		return $data;
+	}
+
+	/**
+	 * Thinking budget per reasoning effort, for Claude models without adaptive thinking
+	 */
+	const ANTHROPIC_THINKING_BUDGETS = [
+		'low' => 2048,
+		'medium' => 8192,
+		'high' => 16384,
+		'xhigh' => 32000,
+	];
+
+	/**
+	 * Which request fields the endpoint understands: "openai", "anthropic" or "generic"
+	 *
+	 * The "api_dialect" config wins, if set to anything but "auto" - for proxies, whose URL does not
+	 * tell what is behind them. Otherwise the provider prefix of the model, then the host of the URL.
+	 *
+	 * @param array $config values for keys "api_dialect", "provider" and "api_url"
+	 * @param ?string &$reason on return, how the dialect was determined
+	 * @return string
+	 */
+	public static function apiDialect(array $config, ?string &$reason=null) : string
+	{
+		if (in_array($dialect = $config['api_dialect'] ?? null, ['openai', 'anthropic', 'generic'], true))
+		{
+			$reason = 'configured';
+			return $dialect;
+		}
+		if (in_array($dialect = $config['provider'] ?? null, ['openai', 'anthropic'], true))
+		{
+			$reason = 'auto, from the provider';
+			return $dialect;
+		}
+		$host = strtolower((string)parse_url((string)($config['api_url'] ?? ''), PHP_URL_HOST));
+		foreach (['openai' => 'openai.com', 'anthropic' => 'anthropic.com'] as $dialect => $domain)
+		{
+			if ($host === $domain || str_ends_with($host, '.'.$domain))
+			{
+				$reason = 'auto, from the API URL';
+				return $dialect;
+			}
+		}
+		$reason = 'auto';
+		return 'generic';
+	}
+
+	/**
+	 * OpenAI reasoning model: o1, o3, o4-mini, gpt-5*, ...
+	 *
+	 * @param string $model
+	 * @return bool
+	 */
+	protected static function isOpenAiReasoningModel(string $model) : bool
+	{
+		return (bool)preg_match('/^(o\d|gpt-5)/i', $model);
+	}
+
+	/**
+	 * Claude model that needs {"type": "enabled", "budget_tokens": N}, as adaptive thinking came with 4.6
+	 *
+	 * Claude 3, Haiku 4.5, Sonnet/Opus 4, 4.1 and 4.5, with or without a date suffix.
+	 *
+	 * @param string $model
+	 * @return bool
+	 */
+	protected static function isAnthropicBudgetThinkingModel(string $model) : bool
+	{
+		return (bool)preg_match('/^claude-(3|haiku-4|(sonnet|opus)-4(-[015])?(-\d{8})?$)/i', $model);
+	}
+
+	/**
+	 * Claude model that rejects temperature/top_p: Opus 4.7 and newer, Sonnet 5, Fable, Mythos
+	 *
+	 * @param string $model
+	 * @return bool
+	 */
+	protected static function isAnthropicNoSamplingModel(string $model) : bool
+	{
+		return (bool)preg_match('/^claude-(fable|mythos|opus-(4-[7-9]|[5-9])|sonnet-[5-9])/i', $model);
 	}
 
 	/**

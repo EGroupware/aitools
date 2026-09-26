@@ -6,7 +6,13 @@ ai service configuration	aitools	en	AI Service Configuration
 ai tools are processing...	aitools	en	AI Tools are processing...
 aitools	common	en	AI Tools
 answer: %1	aitools	en	Answer: %1
+anthropic (openai compatible endpoint)	aitools	en	Anthropic (OpenAI compatible endpoint)
+anthropic: switches thinking on, the level only applies to claude models before 4.6.	aitools	en	Anthropic: switches thinking on, the level only applies to Claude models before 4.6.
+api dialect	aitools	en	API dialect
+automatic, from provider or api url	aitools	en	Automatic, from provider or API URL
+balanced thinking time and quality.	aitools	en	Balanced thinking time and quality.
 checking grammar and spelling...	aitools	en	Checking grammar and spelling...
+claude through anthropic's openai compatible endpoint (https://api.anthropic.com/v1). it ignores reasoning_effort, so the reasoning effort switches on thinking instead: adaptive on claude 4.6 and newer, with a token budget by level on older models. temperature is left out with thinking and for the newest models, which reject it.	aitools	en	Claude through Anthropic's OpenAI compatible endpoint (https://api.anthropic.com/v1). It ignores reasoning_effort, so the reasoning effort switches on thinking instead: adaptive on Claude 4.6 and newer, with a token budget by level on older models. Temperature is left out with thinking and for the newest models, which reject it.
 composing thank you note...	aitools	en	Composing thank you note...
 configuration	aitools	en	Configuration
 connection failed	aitools	en	Connection failed
@@ -42,13 +48,18 @@ making text more casual...	aitools	en	Making text more casual...
 making text more concise...	aitools	en	Making text more concise...
 making text more formal...	aitools	en	Making text more formal...
 maximum number of tokens	aitools	en	Maximum number of tokens
+maximum thinking, newest models only (eg. gpt-5.x, claude): slowest and most tokens. older models may reject it.	aitools	en	Maximum thinking, newest models only (eg. gpt-5.x, Claude): slowest and most tokens. Older models may reject it.
 meeting follow-up	aitools	en	Meeting follow-up
 missing ai configuration: api url or model!	common	en	Missing AI configuration: API URL or Model!
 model	aitools	en	Model
 model %1 found (%2 models)	aitools	en	Model %1 found (%2 models)
 no models found, maybe endpoint not correctly configured!	common	en	No models found, maybe endpoint not correctly configured!
 no result received from ai	aitools	en	No result received from AI
+nothing is sent, the model decides.	aitools	en	Nothing is sent, the model decides.
+ollama, llama.cpp, vllm, litellm and other proxies: reasoning_effort, max_tokens and temperature as given. choose this for a proxy whose url would otherwise be taken for openai or anthropic.	aitools	en	Ollama, llama.cpp, vLLM, LiteLLM and other proxies: reasoning_effort, max_tokens and temperature as given. Choose this for a proxy whose URL would otherwise be taken for OpenAI or Anthropic.
+openai for the openai: provider or api.openai.com, anthropic for the anthropic: provider or api.anthropic.com, otherwise other openai compatible.	aitools	en	OpenAI for the openai: provider or api.openai.com, Anthropic for the anthropic: provider or api.anthropic.com, otherwise Other OpenAI compatible.
 order	aitools	en	Order
+other openai compatible (ollama, llama.cpp, vllm, ...)	aitools	en	Other OpenAI compatible (Ollama, llama.cpp, vLLM, ...)
 overrides	aitools	en	Overrides
 overriding what's set in the aitools app configuration	aitools	en	Overriding what's set in the AiTools app configuration
 please do not modify stock prompts, disable them instead and add your own.	aitools	en	Please do NOT modify stock prompts, disable them instead and add your own.
@@ -56,6 +67,8 @@ processing stops without result(!), if this number of tokens is reached.	aitools
 professional reply	aitools	en	Professional reply
 prompt	aitools	en	Prompt
 reasoning effort	aitools	en	Reasoning effort
+sends max_completion_tokens instead of the deprecated max_tokens. reasoning effort goes to reasoning models (o-series, gpt-5) only, temperature and top_p only to the other models, as each rejects the other.	aitools	en	Sends max_completion_tokens instead of the deprecated max_tokens. Reasoning effort goes to reasoning models (o-series, gpt-5) only, temperature and top_p only to the other models, as each rejects the other.
+short thinking: fast and cheap, enough for simple tasks like summaries, subjects or translations.	aitools	en	Short thinking: fast and cheap, enough for simple tasks like summaries, subjects or translations.
 summarize text	aitools	en	Summarize text
 summarizing your text...	aitools	en	Summarizing your text...
 temperature	aitools	en	Temperature
@@ -64,7 +77,9 @@ testing connection, this can take up to the configured timeout ...	aitools	en	Te
 tests the values above, also before they are saved.	aitools	en	Tests the values above, also before they are saved.
 text processed successfully	aitools	en	Text processed successfully
 thank you note	aitools	en	Thank you note
+thinking off, where the model supports it: fastest answers, weakest on complex tasks. not sent to anthropic, claude 5 models think anyway.	aitools	en	Thinking off, where the model supports it: fastest answers, weakest on complex tasks. Not sent to Anthropic, Claude 5 models think anyway.
 this id is already in use!	aitools	en	This ID is already in use!
+thorough thinking for complex tasks: slower, uses more tokens - raise the maximum number of tokens and the timeout if answers get cut off.	aitools	en	Thorough thinking for complex tasks: slower, uses more tokens - raise the maximum number of tokens and the timeout if answers get cut off.
 timeout	aitools	en	Timeout
 tools	aitools	en	Tools
 translate	aitools	en	Translate
