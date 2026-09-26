@@ -229,6 +229,7 @@ class Admin
 		]);
 		echo $section('Replaced in every prompt', [
 			['{{username}}', 'Login name of the user'],
+			['{{useraccountid}}', 'Numeric account ID of the user'],
 			['{{userfullname}}', 'Full name of the user'],
 			['{{useremail}}', 'Email address of the user'],
 			['{{userdate}} {{usertime}}', 'Current date and time of the user'],

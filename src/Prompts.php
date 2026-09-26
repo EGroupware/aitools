@@ -94,6 +94,9 @@ class Prompts extends Api\Storage\Json
 							return $GLOBALS['egw_info']['user']['account_fullname'];
 						case 'useremail':
 							return $GLOBALS['egw_info']['user']['account_email'];
+						case 'useraccountid':
+							// the numeric account_id, as eg. {{user/account_id}} of document merge
+							return (string)$GLOBALS['egw_info']['user']['account_id'];
 						case 'systemtime':
 							// 'Z' is a PHP date()-format character (timezone offset in seconds), NOT
 							// a literal ISO-8601 "Z" suffix - the un-escaped version used to render
