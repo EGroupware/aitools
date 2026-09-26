@@ -118,10 +118,48 @@ class Admin
 			'button[delete]' => empty($content['id']),
 		];
 		$sel_options = [
-			'tools' => Api\CalDAV\OpenAPI::operationIds(),
+			'tools' => self::toolOptions(),
 		];
 		$tmpl = new Api\Etemplate(self::APP.'.prompt');
 		$tmpl->exec(self::APP.'.'.self::class.'.edit', $content, $sel_options, $readonlys, $content, 2);
+	}
+
+	/**
+	 * Tools as select-options, labelled "<Application>: <summary>" and sorted by application
+	 *
+	 * Like Api\CalDAV\OpenAPI::operationIds(), which does not tell the application: without it
+	 * "Create a document" or "Delete an entry" could be from any of them. The application is the
+	 * first segment of the path, or the second after "{username}"; "{app}" paths are the links API.
+	 *
+	 * @return array operationId => array with values for keys value, label and title
+	 */
+	public static function toolOptions() : array
+	{
+		$options = [];
+		foreach (Api\CalDAV\OpenAPI::scan()['paths'] as $path => $methods)
+		{
+			$segments = explode('/', trim($path, '/'));
+			$app = $segments[0] === '{username}' ? ($segments[1] ?? '') : $segments[0];
+			// the title the navigation shows, as Api\Framework does; some carry padding spaces
+			$app_label = $app === '{app}' ? lang('Links') :
+				preg_replace('/\s+/', ' ', trim($GLOBALS['egw_info']['apps'][$app]['title'] ?? lang($app)));
+
+			foreach ($methods as $data)
+			{
+				// skip path-level fields like "parameters", which are no operations
+				if (!is_array($data) || empty($data['operationId'])) continue;
+
+				$options[$data['operationId']] = [
+					'value' => $data['operationId'],
+					'label' => $app_label.': '.lang($data['summary'] ?? $data['operationId']),
+					'title' => $data['description'] ?? '',
+				];
+			}
+		}
+		// stable sort by application only, operations keep the order of their description
+		uasort($options, static fn($a, $b) => strcasecmp(strstr($a['label'], ': ', true), strstr($b['label'], ': ', true)));
+
+		return $options;
 	}
 
 	/**
