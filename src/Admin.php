@@ -175,6 +175,15 @@ class Admin
 		{
 			$query['order'] = 'prompt_'.$query['order'];
 		}
+		// prompt_apps is empty for "all applications", otherwise a comma-separated list: a plain
+		// comparison only found prompts for exactly the one app, and nothing for most apps
+		if (!empty($apps = $query['col_filter']['apps'] ?? null))
+		{
+			$db = $GLOBALS['egw']->db;
+			$query['col_filter'][] = "(prompt_apps IS NULL OR prompt_apps='' OR ".implode(' OR ', array_map(
+				static fn($app) => 'FIND_IN_SET('.$db->quote($app).', prompt_apps)', (array)$apps)).')';
+		}
+		unset($query['col_filter']['apps']);
 		$total = $this->prompts->get_rows($query, $rows, $readonlys);
 		foreach($rows as &$row)
 		{

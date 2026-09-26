@@ -23,7 +23,7 @@
 					<nextmatch-sortheader label="Order" id="prompt_order"/>
 					<nextmatch-sortheader label="Label" id="prompt_label"/>
 					<nextmatch-sortheader label="Prompt" id="text"/>
-					<et2-nextmatch-header-custom  widgetType="" ariaLabel="Applications" emptyLabel="All applications" id="apps"></et2-nextmatch-header-custom>
+					<et2-nextmatch-header-custom  widgetType="select-app" ariaLabel="Applications" emptyLabel="All applications" id="apps"></et2-nextmatch-header-custom>
 					<et2-nextmatch-header-account  ariaLabel="Accounts" emptyLabel="All accounts" id="account_id"></et2-nextmatch-header-account>
 					<et2-vbox>
 						<nextmatch-sortheader label="Last modified" id="prompt_modified"/>
