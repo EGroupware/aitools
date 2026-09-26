@@ -14,14 +14,24 @@
 				</row>
 				<row>
 					<et2-description  value="AI Model Provider" label="%s:"></et2-description>
-					<et2-vbox>
-						<et2-select  id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
-						<et2-textbox  id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
-					</et2-vbox>
+					<et2-select  id="newsettings[ai_model]" onchange="app.aitools.configModelChanged" emptyLabel="None"></et2-select>
+				</row>
+				<row>
+					<et2-description  id="custom_model_label" for="newsettings[ai_custom_model]" value="Model name" label="%s:"></et2-description>
+					<et2-textbox  id="newsettings[ai_custom_model]" placeholder="Enter model name"></et2-textbox>
 				</row>
 				<row>
 					<et2-description  value="AI API URL" label="%s:"></et2-description>
-					<et2-textbox  id="newsettings[ai_api_url]" placeholder="Enter custom API URL"></et2-textbox>
+					<et2-textbox  id="newsettings[ai_api_url]" placeholder="Enter custom API URL" onchange="app.aitools.configDialectChanged"></et2-textbox>
+				</row>
+				<row>
+					<et2-description  for="newsettings[api_dialect]" value="API dialect" label="%s:"></et2-description>
+					<et2-select  id="newsettings[api_dialect]" onchange="app.aitools.configDialectChanged">
+						<option value="" title="OpenAI for the openai: provider or api.openai.com, Anthropic for the anthropic: provider or api.anthropic.com, otherwise Other OpenAI compatible.">Automatic, from provider or API URL</option>
+						<option value="openai" title="Sends max_completion_tokens instead of the deprecated max_tokens. Reasoning effort goes to reasoning models (o-series, gpt-5) only, temperature and top_p only to the other models, as each rejects the other.">OpenAI</option>
+						<option value="anthropic" title="Claude through Anthropic's OpenAI compatible endpoint (https://api.anthropic.com/v1). It ignores reasoning_effort, so the reasoning effort switches on thinking instead: adaptive on Claude 4.6 and newer, with a token budget by level on older models. Temperature is left out with thinking and for the newest models, which reject it.">Anthropic (OpenAI compatible endpoint)</option>
+						<option value="generic" title="Ollama, llama.cpp, vLLM, LiteLLM and other proxies: reasoning_effort, max_tokens and temperature as given. Choose this for a proxy whose URL would otherwise be taken for OpenAI or Anthropic.">Other OpenAI compatible (Ollama, llama.cpp, vLLM, ...)</option>
+					</et2-select>
 				</row>
 				<row>
 					<et2-description  value="AI API Key" label="%s:"></et2-description>
@@ -29,13 +39,17 @@
 				</row>
 				<row>
 					<et2-description  for="newsettings[reasoning]" value="Reasoning effort" label="%s:"></et2-description>
-					<et2-select  id="newsettings[reasoning]" emptyLabel="Default">
-						<option value="none">None</option>
-						<option value="low">Low</option>
-						<option value="medium">Medium</option>
-						<option value="high">High</option>
-						<option value="xhigh">Extra high</option>
-					</et2-select>
+					<et2-hbox>
+						<et2-select  id="newsettings[reasoning]">
+							<option value="" title="Nothing is sent, the model decides.">Default</option>
+							<option value="none" title="Thinking off, where the model supports it: fastest answers, weakest on complex tasks. Not sent to Anthropic, Claude 5 models think anyway.">None</option>
+							<option value="low" title="Short thinking: fast and cheap, enough for simple tasks like summaries, subjects or translations.">Low</option>
+							<option value="medium" title="Balanced thinking time and quality.">Medium</option>
+							<option value="high" title="Thorough thinking for complex tasks: slower, uses more tokens - raise the maximum number of tokens and the timeout if answers get cut off.">High</option>
+							<option value="xhigh" title="Maximum thinking, newest models only (eg. gpt-5.x, Claude): slowest and most tokens. Older models may reject it.">Extra high</option>
+						</et2-select>
+						<et2-description  id="anthropic_thinking_hint" value="Anthropic: switches thinking on, the level only applies to Claude models before 4.6."></et2-description>
+					</et2-hbox>
 				</row>
 				<row>
 					<et2-description  value="Maximum number of tokens" label="%s:"></et2-description>
@@ -51,6 +65,13 @@
 				<row>
 					<et2-description  for="newsettings[temperature]" value="Temperature"></et2-description>
 					<et2-number  id="newsettings[temperature]" placeholder="0.7" min="0" max="1.0" step=".1"></et2-number>
+				</row>
+				<row>
+					<et2-description></et2-description>
+					<et2-hbox>
+						<et2-button  id="test_connection" label="Test connection" image="plug" noSubmit="true" onclick="app.aitools.testConnection"></et2-button>
+						<et2-description  value="Tests the values above, also before they are saved."></et2-description>
+					</et2-hbox>
 				</row>
 				<row>
 					<et2-description  value="deepl.com Configuration" span="all" class="subHeader"></et2-description>

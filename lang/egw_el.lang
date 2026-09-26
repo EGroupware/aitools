@@ -1,6 +1,18 @@
 ai service configuration	aitools	el	Διαμόρφωση υπηρεσίας τεχνητής νοημοσύνης
 aitools	common	el	Εργαλεία τεχνητής νοημοσύνης
+answer: %1	aitools	el	Απάντηση: %1
+anthropic (openai compatible endpoint)	aitools	el	Anthropic (endpoint συμβατό με OpenAI)
+anthropic: switches thinking on, the level only applies to claude models before 4.6.	aitools	el	Anthropic: ενεργοποιεί το thinking, το επίπεδο ισχύει μόνο για μοντέλα Claude πριν το 4.6.
+api dialect	aitools	el	Διάλεκτος API
+automatic, from provider or api url	aitools	el	Αυτόματα, από τον πάροχο ή το URL του API
+balanced thinking time and quality.	aitools	el	Ισορροπία ανάμεσα σε χρόνο σκέψης και ποιότητα.
+claude through anthropic's openai compatible endpoint (https://api.anthropic.com/v1). it ignores reasoning_effort, so the reasoning effort switches on thinking instead: adaptive on claude 4.6 and newer, with a token budget by level on older models. temperature is left out with thinking and for the newest models, which reject it.	aitools	el	Claude μέσω του endpoint της Anthropic που είναι συμβατό με OpenAI (https://api.anthropic.com/v1). Αγνοεί το reasoning_effort, οπότε η προσπάθεια συλλογισμού ενεργοποιεί αντί γι' αυτό το thinking: προσαρμοστικό από το Claude 4.6 και νεότερα, με προϋπολογισμό tokens ανά επίπεδο στα παλαιότερα μοντέλα. Το temperature παραλείπεται με thinking και στα νεότερα μοντέλα, που το απορρίπτουν.
+configuration	aitools	el	Διαμόρφωση
+connection failed	aitools	el	Η σύνδεση απέτυχε
+connection ok	aitools	el	Η σύνδεση είναι εντάξει
+copy debug information	aitools	el	Αντιγραφή πληροφοριών αποσφαλμάτωσης
 deepl.com configuration	aitools	el	Διαμόρφωση DeepL.com
+empty answer, finish reason: %1	aitools	el	Κενή απάντηση, αιτία τερματισμού: %1
 fix grammar & spelling	aitools	el	Διόρθωση γραμματικής και ορθογραφίας
 generate	aitools	el	Δημιουργία
 generate a subject	aitools	el	Δημιουργία θέματος
@@ -10,10 +22,25 @@ make concise	aitools	el	Συνοπτική διατύπωση
 make more casual	aitools	el	Πιο ανεπίσημη διατύπωση
 make more formal	aitools	el	Πιο επίσημη διατύπωση
 maximum number of tokens	aitools	el	Μέγιστος αριθμός συμβόλων
+maximum thinking, newest models only (eg. gpt-5.x, claude): slowest and most tokens. older models may reject it.	aitools	el	Μέγιστη σκέψη, μόνο νεότερα μοντέλα (π.χ. gpt-5.x, Claude): η πιο αργή και με τα περισσότερα tokens. Παλαιότερα μοντέλα μπορεί να το απορρίψουν.
 meeting follow-up	aitools	el	Παρακολούθηση συνάντησης
+model %1 found (%2 models)	aitools	el	Το μοντέλο %1 βρέθηκε (%2 μοντέλα)
+model name	aitools	el	Όνομα μοντέλου
+nothing is sent, the model decides.	aitools	el	Δεν στέλνεται τίποτα, αποφασίζει το μοντέλο.
+ollama, llama.cpp, vllm, litellm and other proxies: reasoning_effort, max_tokens and temperature as given. choose this for a proxy whose url would otherwise be taken for openai or anthropic.	aitools	el	Ollama, llama.cpp, vLLM, LiteLLM και άλλοι proxies: reasoning_effort, max_tokens και temperature όπως δίνονται. Επιλέξτε το για proxy του οποίου το URL αλλιώς θα θεωρούνταν OpenAI ή Anthropic.
+openai for the openai: provider or api.openai.com, anthropic for the anthropic: provider or api.anthropic.com, otherwise other openai compatible.	aitools	el	OpenAI για τον πάροχο openai: ή το api.openai.com, Anthropic για τον πάροχο anthropic: ή το api.anthropic.com, αλλιώς Άλλο συμβατό με OpenAI.
+other openai compatible (ollama, llama.cpp, vllm, ...)	aitools	el	Άλλο συμβατό με OpenAI (Ollama, llama.cpp, vLLM, ...)
+other provider	aitools	el	Άλλος πάροχος
 processing stops without result(!), if this number of tokens is reached.	aitools	el	Η επεξεργασία σταματά χωρίς αποτέλεσμα(!), εάν επιτευχθεί αυτός ο αριθμός συμβόλων.
 professional reply	aitools	el	Επαγγελματική απάντηση
+sends max_completion_tokens instead of the deprecated max_tokens. reasoning effort goes to reasoning models (o-series, gpt-5) only, temperature and top_p only to the other models, as each rejects the other.	aitools	el	Στέλνει max_completion_tokens αντί του παρωχημένου max_tokens. Η προσπάθεια συλλογισμού πηγαίνει μόνο σε μοντέλα συλλογισμού (σειρά o, gpt-5), τα temperature και top_p μόνο στα άλλα μοντέλα, καθώς το καθένα απορρίπτει το άλλο.
+short thinking: fast and cheap, enough for simple tasks like summaries, subjects or translations.	aitools	el	Σύντομη σκέψη: γρήγορη και φθηνή, αρκετή για απλές εργασίες όπως περιλήψεις, θέματα ή μεταφράσεις.
 summarize text	aitools	el	Σύνοψη κειμένου
+test connection	aitools	el	Έλεγχος σύνδεσης
+testing connection, this can take up to the configured timeout ...	aitools	el	Έλεγχος σύνδεσης, μπορεί να διαρκέσει έως το ορισμένο χρονικό όριο ...
+tests the values above, also before they are saved.	aitools	el	Ελέγχει τις παραπάνω τιμές, και πριν αποθηκευτούν.
 thank you note	aitools	el	Ευχαριστήρια επιστολή
+thinking off, where the model supports it: fastest answers, weakest on complex tasks. not sent to anthropic, claude 5 models think anyway.	aitools	el	Thinking απενεργοποιημένο, όπου το υποστηρίζει το μοντέλο: ταχύτερες απαντήσεις, πιο αδύναμο σε σύνθετες εργασίες. Δεν στέλνεται στην Anthropic, τα μοντέλα Claude 5 σκέφτονται ούτως ή άλλως.
+thorough thinking for complex tasks: slower, uses more tokens - raise the maximum number of tokens and the timeout if answers get cut off.	aitools	el	Διεξοδική σκέψη για σύνθετες εργασίες: πιο αργή, χρησιμοποιεί περισσότερα tokens - αυξήστε τον μέγιστο αριθμό συμβόλων και το χρονικό όριο αν οι απαντήσεις κόβονται.
 translate	aitools	el	Μετάφραση
 translation languages	aitools	el	Γλώσσες μετάφρασης

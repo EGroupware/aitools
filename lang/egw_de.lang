@@ -1,11 +1,23 @@
 ai service configuration	aitools	de	KI Service-Konfiguration
 aitools	common	de	KI-Tools
+answer: %1	aitools	de	Antwort: %1
+anthropic (openai compatible endpoint)	aitools	de	Anthropic (OpenAI-kompatibler Endpunkt)
+anthropic: switches thinking on, the level only applies to claude models before 4.6.	aitools	de	Anthropic: schaltet Thinking ein, die Stufe gilt nur für Claude-Modelle vor 4.6.
+api dialect	aitools	de	API-Dialekt
+automatic, from provider or api url	aitools	de	Automatisch, anhand Anbieter oder API-URL
+balanced thinking time and quality.	aitools	de	Ausgewogen zwischen Denkzeit und Qualität.
+claude through anthropic's openai compatible endpoint (https://api.anthropic.com/v1). it ignores reasoning_effort, so the reasoning effort switches on thinking instead: adaptive on claude 4.6 and newer, with a token budget by level on older models. temperature is left out with thinking and for the newest models, which reject it.	aitools	de	Claude über den OpenAI-kompatiblen Endpunkt von Anthropic (https://api.anthropic.com/v1). Er ignoriert reasoning_effort, daher schaltet der Reasoning-Aufwand stattdessen Thinking ein: adaptiv ab Claude 4.6, mit einem Token-Budget je Stufe bei älteren Modellen. Temperature entfällt mit Thinking und bei den neuesten Modellen, die sie ablehnen.
+configuration	aitools	de	Konfiguration
+connection failed	aitools	de	Verbindung fehlgeschlagen
+connection ok	aitools	de	Verbindung OK
 context-menu	aitools	de	Kontextmenü
+copy debug information	aitools	de	Debug-Informationen kopieren
 create a contact from the signature	common	de	Lege aus der Signatur einen Kontakt an
 customize prompts	admin	de	Prompts anpassen
 deepl.com configuration	aitools	de	DeepL.com - Konfiguration
 delete this prompt(s)	aitools	de	Diese(n) Prompt(s) löschen
 do you really want to delete this prompt?	aitools	de	Wollen Sie diesen Prompt wirklich löschen?
+empty answer, finish reason: %1	aitools	de	Leere Antwort, Abbruchgrund: %1
 entry added	aitools	de	Eintrag hinzugefügt.
 entry deleted	aitools	de	Eintrag gelöscht.
 entry updated	aitools	de	Eintrag aktualisiert.
@@ -19,16 +31,31 @@ make concise	aitools	de	Prägnant formulieren
 make more casual	aitools	de	Lockerer formulieren
 make more formal	aitools	de	Formeller formulieren
 maximum number of tokens	aitools	de	Maximale Anzahl von Tokens
+maximum thinking, newest models only (eg. gpt-5.x, claude): slowest and most tokens. older models may reject it.	aitools	de	Maximales Nachdenken, nur neueste Modelle (z.B. gpt-5.x, Claude): am langsamsten und die meisten Tokens. Ältere Modelle lehnen es eventuell ab.
 meeting follow-up	aitools	de	Nachbereitung des Meetings
+model %1 found (%2 models)	aitools	de	Modell %1 gefunden (%2 Modelle)
+model name	aitools	de	Modellname
+nothing is sent, the model decides.	aitools	de	Es wird nichts gesendet, das Modell entscheidet.
+ollama, llama.cpp, vllm, litellm and other proxies: reasoning_effort, max_tokens and temperature as given. choose this for a proxy whose url would otherwise be taken for openai or anthropic.	aitools	de	Ollama, llama.cpp, vLLM, LiteLLM und andere Proxies: reasoning_effort, max_tokens und temperature wie angegeben. Für einen Proxy wählen, dessen URL sonst für OpenAI oder Anthropic gehalten würde.
+openai for the openai: provider or api.openai.com, anthropic for the anthropic: provider or api.anthropic.com, otherwise other openai compatible.	aitools	de	OpenAI für den Anbieter openai: oder api.openai.com, Anthropic für den Anbieter anthropic: oder api.anthropic.com, sonst Andere OpenAI-kompatible.
 order	aitools	de	Reihenfolge
+other openai compatible (ollama, llama.cpp, vllm, ...)	aitools	de	Andere OpenAI-kompatible (Ollama, llama.cpp, vLLM, ...)
+other provider	aitools	de	Anderer Anbieter
 overrides	aitools	de	Überschreiben
 overriding what's set in the aitools app configuration	aitools	de	Überschreiben der in der KI-Tools App-Konfiguration festgelegten Einstellungen
 please do not modify stock prompts, disable them instead and add your own.	aitools	de	Bitte ändern Sie die Standard-Eingabeaufforderungen NICHT, sondern deaktivieren Sie sie stattdessen und fügen Sie Ihre eigenen hinzu.
 processing stops without result(!), if this number of tokens is reached.	aitools	de	Die Verarbeitung wird ohne Ergebnis beendet (!), wenn diese Anzahl an Tokens erreicht ist.
 professional reply	aitools	de	Professionelle Antwort
+sends max_completion_tokens instead of the deprecated max_tokens. reasoning effort goes to reasoning models (o-series, gpt-5) only, temperature and top_p only to the other models, as each rejects the other.	aitools	de	Sendet max_completion_tokens statt des veralteten max_tokens. Der Reasoning-Aufwand geht nur an Reasoning-Modelle (o-Serie, gpt-5), temperature und top_p nur an die anderen Modelle, da jede Gruppe das jeweils andere ablehnt.
+short thinking: fast and cheap, enough for simple tasks like summaries, subjects or translations.	aitools	de	Kurzes Nachdenken: schnell und günstig, genug für einfache Aufgaben wie Zusammenfassungen, Betreffzeilen oder Übersetzungen.
 summarize text	aitools	de	Text zusammenfassen
+test connection	aitools	de	Verbindung testen
+testing connection, this can take up to the configured timeout ...	aitools	de	Teste die Verbindung, das kann bis zum eingestellten Timeout dauern ...
+tests the values above, also before they are saved.	aitools	de	Testet die obigen Werte, auch bevor sie gespeichert sind.
 thank you note	aitools	de	Dankschreiben
+thinking off, where the model supports it: fastest answers, weakest on complex tasks. not sent to anthropic, claude 5 models think anyway.	aitools	de	Thinking aus, wo das Modell es unterstützt: schnellste Antworten, am schwächsten bei komplexen Aufgaben. Wird nicht an Anthropic gesendet, Claude-5-Modelle denken ohnehin.
 this id is already in use!	aitools	de	Diese ID ist Bereits in Benutzung!
+thorough thinking for complex tasks: slower, uses more tokens - raise the maximum number of tokens and the timeout if answers get cut off.	aitools	de	Gründliches Nachdenken für komplexe Aufgaben: langsamer, braucht mehr Tokens - maximale Token-Anzahl und Timeout erhöhen, wenn Antworten abbrechen.
 tools	aitools	de	Werkzeuge
 translate	aitools	de	Übersetzen
 translation languages	aitools	de	Übersetzungssprachen
