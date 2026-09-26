@@ -64,6 +64,34 @@ export class AIToolsApp extends EgwApp
 		custom_model.required = model?.value && model.value === 'custom';
 		const custom_url = this.et2.getWidgetById('newsettings[ai_api_url]');
 		custom_url.required = model?.value === 'custom';
+
+		this.configDialectChanged(_ev, <any>_widget);
+	}
+
+	/**
+	 * API dialect, provider or API URL changed: show the Anthropic thinking hint only for Anthropic
+	 *
+	 * Same decision as Bo::apiDialect() server-side: configured dialect, then provider prefix, then URL host.
+	 *
+	 * @param _ev
+	 * @param _widget
+	 */
+	configDialectChanged(_ev? : Event, _widget? : Et2Select|Et2Template)
+	{
+		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		const value = (name : string) => String((<any>this.et2.getInputWidgetById('newsettings['+name+']'))?.getValue() ?? '');
+
+		let dialect = value('api_dialect');
+		if (!['openai', 'anthropic', 'generic'].includes(dialect))
+		{
+			const provider = value('ai_model').split(':')[0];
+			let host = '';
+			try { host = new URL(value('ai_api_url')).hostname.toLowerCase(); } catch (e) {}
+			dialect = ['openai', 'anthropic'].includes(provider) ? provider :
+				(['openai', 'anthropic'].find(d => host === d+'.com' || host.endsWith('.'+d+'.com')) ?? 'generic');
+		}
+		const hint = this.et2.getWidgetById('anthropic_thinking_hint');
+		if (hint) hint.hidden = dialect !== 'anthropic';
 	}
 
 	/**
@@ -78,14 +106,16 @@ export class AIToolsApp extends EgwApp
 	{
 		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
 		const settings = {};
-		['ai_model', 'ai_custom_model', 'ai_api_url', 'ai_api_key', 'reasoning', 'max_tokens', 'timeout', 'temperature'].forEach(name =>
+		['ai_model', 'ai_custom_model', 'ai_api_url', 'api_dialect', 'ai_api_key', 'reasoning', 'max_tokens', 'timeout', 'temperature'].forEach(name =>
 		{
 			// getValue(), not value: et2-number's value is the localized display text ("10.000", "0,1")
 			settings[name] = (<any>this.et2.getInputWidgetById('newsettings['+name+']'))?.getValue() ?? '';
 		});
 
+		// Et2Dialog freezes its size to the content when it opens (_setInitialSize()), which is only the
+		// "Testing ..." line here - so give it the size for the result upfront, the body scrolls beyond
 		const content = document.createElement('div');
-		content.style.minWidth = 'min(45em, 90vw)';
+		content.style.minHeight = 'min(60vh, 36em)';
 		content.textContent = this.egw.lang('Testing connection, this can take up to the configured timeout ...');
 
 		const dialog = new Et2Dialog(this.egw);
@@ -94,6 +124,8 @@ export class AIToolsApp extends EgwApp
 			buttons: Et2Dialog.BUTTONS_OK,
 			isModal: true,
 		});
+		// a width attribute does not reach the panel, its --width does
+		dialog.style.setProperty('--width', 'min(50em, 92vw)');
 		dialog.appendChild(content);
 		document.body.appendChild(<any>dialog);
 
@@ -141,7 +173,7 @@ export class AIToolsApp extends EgwApp
 			summary.append(title, ': '+step.summary);
 			const pre = document.createElement('pre');
 			pre.textContent = step.details;
-			pre.style.cssText = 'max-height: 20em; overflow: auto; white-space: pre-wrap; word-break: break-all; font-size: 90%; '+
+			pre.style.cssText = 'max-height: 60vh; overflow: auto; white-space: pre-wrap; word-break: break-all; font-size: 90%; '+
 				'background: var(--sl-color-neutral-100); padding: .5em; margin: .25em 0 0 0; user-select: text;';
 			details.append(summary, pre);
 			nodes.push(details);
