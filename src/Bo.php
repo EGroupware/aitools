@@ -449,7 +449,7 @@ class Bo
 				'API URL: '.($config['api_url'] ?: '-'),
 				'API dialect: '.self::apiDialect($config, $reason).' ('.$reason.')',
 				// last 4 characters only of a key long enough that they give nothing away
-				'API key: '.($key === '' ? 'none' : strlen($key).' characters'.(strlen($key) >= 16 ? ', ...'.substr($key, -4) : '')),
+				'API key: '.($key === '' ? 'not set' : 'set ('.strlen($key).' characters'.(strlen($key) >= 16 ? ', ends with ...'.substr($key, -4) : '').')'),
 				'Reasoning effort: '.($config['reasoning'] ?? 'default (not sent)'),
 				'Max tokens: '.($config['max_tokens'] ?? 'default'),
 				'Temperature: '.($config['temperature'] ?? 'default'),

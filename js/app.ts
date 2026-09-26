@@ -61,6 +61,8 @@ export class AIToolsApp extends EgwApp
 		const model = <Et2Select><unknown>(_ev.type === 'load' ? this.et2.getInputWidgetById('newsettings[ai_model]') : _widget);
 		const custom_model = this.et2.getWidgetById('newsettings[ai_custom_model]');
 		custom_model.hidden = model?.value !== 'custom';
+		const custom_model_label = this.et2.getWidgetById('custom_model_label');
+		if (custom_model_label) custom_model_label.hidden = custom_model.hidden;
 		custom_model.required = model?.value && model.value === 'custom';
 		const custom_url = this.et2.getWidgetById('newsettings[ai_api_url]');
 		custom_url.required = model?.value === 'custom';

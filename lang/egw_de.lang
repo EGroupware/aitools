@@ -34,11 +34,13 @@ maximum number of tokens	aitools	de	Maximale Anzahl von Tokens
 maximum thinking, newest models only (eg. gpt-5.x, claude): slowest and most tokens. older models may reject it.	aitools	de	Maximales Nachdenken, nur neueste Modelle (z.B. gpt-5.x, Claude): am langsamsten und die meisten Tokens. Ältere Modelle lehnen es eventuell ab.
 meeting follow-up	aitools	de	Nachbereitung des Meetings
 model %1 found (%2 models)	aitools	de	Modell %1 gefunden (%2 Modelle)
+model name	aitools	de	Modellname
 nothing is sent, the model decides.	aitools	de	Es wird nichts gesendet, das Modell entscheidet.
 ollama, llama.cpp, vllm, litellm and other proxies: reasoning_effort, max_tokens and temperature as given. choose this for a proxy whose url would otherwise be taken for openai or anthropic.	aitools	de	Ollama, llama.cpp, vLLM, LiteLLM und andere Proxies: reasoning_effort, max_tokens und temperature wie angegeben. Für einen Proxy wählen, dessen URL sonst für OpenAI oder Anthropic gehalten würde.
 openai for the openai: provider or api.openai.com, anthropic for the anthropic: provider or api.anthropic.com, otherwise other openai compatible.	aitools	de	OpenAI für den Anbieter openai: oder api.openai.com, Anthropic für den Anbieter anthropic: oder api.anthropic.com, sonst Andere OpenAI-kompatible.
 order	aitools	de	Reihenfolge
 other openai compatible (ollama, llama.cpp, vllm, ...)	aitools	de	Andere OpenAI-kompatible (Ollama, llama.cpp, vLLM, ...)
+other provider	aitools	de	Anderer Anbieter
 overrides	aitools	de	Überschreiben
 overriding what's set in the aitools app configuration	aitools	de	Überschreiben der in der KI-Tools App-Konfiguration festgelegten Einstellungen
 please do not modify stock prompts, disable them instead and add your own.	aitools	de	Bitte ändern Sie die Standard-Eingabeaufforderungen NICHT, sondern deaktivieren Sie sie stattdessen und fügen Sie Ihre eigenen hinzu.

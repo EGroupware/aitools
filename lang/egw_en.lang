@@ -53,6 +53,7 @@ meeting follow-up	aitools	en	Meeting follow-up
 missing ai configuration: api url or model!	common	en	Missing AI configuration: API URL or Model!
 model	aitools	en	Model
 model %1 found (%2 models)	aitools	en	Model %1 found (%2 models)
+model name	aitools	en	Model name
 no models found, maybe endpoint not correctly configured!	common	en	No models found, maybe endpoint not correctly configured!
 no result received from ai	aitools	en	No result received from AI
 nothing is sent, the model decides.	aitools	en	Nothing is sent, the model decides.
@@ -60,6 +61,7 @@ ollama, llama.cpp, vllm, litellm and other proxies: reasoning_effort, max_tokens
 openai for the openai: provider or api.openai.com, anthropic for the anthropic: provider or api.anthropic.com, otherwise other openai compatible.	aitools	en	OpenAI for the openai: provider or api.openai.com, Anthropic for the anthropic: provider or api.anthropic.com, otherwise Other OpenAI compatible.
 order	aitools	en	Order
 other openai compatible (ollama, llama.cpp, vllm, ...)	aitools	en	Other OpenAI compatible (Ollama, llama.cpp, vLLM, ...)
+other provider	aitools	en	Other provider
 overrides	aitools	en	Overrides
 overriding what's set in the aitools app configuration	aitools	en	Overriding what's set in the AiTools app configuration
 please do not modify stock prompts, disable them instead and add your own.	aitools	en	Please do NOT modify stock prompts, disable them instead and add your own.
