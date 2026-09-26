@@ -57,7 +57,9 @@ export class AIToolsApp extends EgwApp
 	 */
 	configModelChanged(_ev? : Event, _widget? : Et2Select|Et2Template)
 	{
-		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		// the template of the widget, not a cached one: in the admin tab this.et2 is still the prompts list
+		// after "Customize prompts" - Test connection then read no settings at all ("Missing AI configuration")
+		if (_widget) this.et2 = <Et2Template><unknown>_widget.getRoot();
 		const model = <Et2Select><unknown>(_ev.type === 'load' ? this.et2.getInputWidgetById('newsettings[ai_model]') : _widget);
 		const custom_model = this.et2.getWidgetById('newsettings[ai_custom_model]');
 		custom_model.hidden = model?.value !== 'custom';
@@ -80,7 +82,9 @@ export class AIToolsApp extends EgwApp
 	 */
 	configDialectChanged(_ev? : Event, _widget? : Et2Select|Et2Template)
 	{
-		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		// the template of the widget, not a cached one: in the admin tab this.et2 is still the prompts list
+		// after "Customize prompts" - Test connection then read no settings at all ("Missing AI configuration")
+		if (_widget) this.et2 = <Et2Template><unknown>_widget.getRoot();
 		const value = (name : string) => String((<any>this.et2.getInputWidgetById('newsettings['+name+']'))?.getValue() ?? '');
 
 		let dialect = value('api_dialect');
@@ -107,7 +111,9 @@ export class AIToolsApp extends EgwApp
 	 */
 	showPlaceholders(_ev? : Event, _widget? : Et2Button)
 	{
-		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		// the template of the widget, not a cached one: in the admin tab this.et2 is still the prompts list
+		// after "Customize prompts" - Test connection then read no settings at all ("Missing AI configuration")
+		if (_widget) this.et2 = <Et2Template><unknown>_widget.getRoot();
 		const apps = (<any>this.et2.getInputWidgetById('apps'))?.getValue() ?? [];
 
 		this.egw.openPopup(this.egw.link('/index.php', {
@@ -126,7 +132,9 @@ export class AIToolsApp extends EgwApp
 	 */
 	testConnection(_ev? : Event, _widget? : Et2Button)
 	{
-		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		// the template of the widget, not a cached one: in the admin tab this.et2 is still the prompts list
+		// after "Customize prompts" - Test connection then read no settings at all ("Missing AI configuration")
+		if (_widget) this.et2 = <Et2Template><unknown>_widget.getRoot();
 		const settings = {};
 		['ai_model', 'ai_custom_model', 'ai_api_url', 'api_dialect', 'ai_api_key', 'reasoning', 'max_tokens', 'timeout', 'temperature'].forEach(name =>
 		{
