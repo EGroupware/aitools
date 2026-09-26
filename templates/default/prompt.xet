@@ -87,7 +87,7 @@
 					<et2-select-account  id="account_id" multiple="true" emptyLabel="All"></et2-select-account>
 				</row>
 				<row>
-					<et2-tabbox  id="tabs" class="et2_nowrap" width="100%" span="all" tabHeight="240">
+					<et2-tabbox  id="tabs" class="et2_nowrap" width="100%" span="all" tabHeight="390">
 						<tabs>
 							<tab id="prompt" label="Prompt"/>
 							<tab id="overrides" label="Overrides"/>

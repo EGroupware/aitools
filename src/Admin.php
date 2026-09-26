@@ -250,13 +250,13 @@ class Admin
 				'default' => true,
 				'allowOnMultiple' => false,
 				'url' => 'menuaction='.self::APP.'.'.self::class.'.edit&prompt_id=$id',
-				'popup' => '640x540',
+				'popup' => '640x710',
 				'group' => $group=0,
 			],
 			'add' => [
 				'caption' => 'Add',
 				'url' => 'menuaction='.self::APP.'.'.self::class.'.edit',
-				'popup' => '640x500',
+				'popup' => '640x710',
 				'group' => $group,
 			],
 			'delete' => [
