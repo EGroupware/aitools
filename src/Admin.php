@@ -23,6 +23,7 @@ class Admin
 	public $public_functions = [
 		'index' => true,
 		'edit'  => true,
+		'placeholders' => true,
 	];
 
 	/**
@@ -122,6 +123,132 @@ class Admin
 		];
 		$tmpl = new Api\Etemplate(self::APP.'.prompt');
 		$tmpl->exec(self::APP.'.'.self::class.'.edit', $content, $sel_options, $readonlys, $content, 2);
+	}
+
+	/**
+	 * The merge class of an application, if it has its own (not the addressbook fallback of get_app_class())
+	 *
+	 * Checked by class name first, so no merge class of another app gets constructed.
+	 *
+	 * @param string $app
+	 * @return string|null class name
+	 */
+	protected static function mergeClass(string $app) : ?string
+	{
+		if ($app === 'addressbook')
+		{
+			return Api\Contacts\Merge::class;
+		}
+		foreach ([$app.'_merge', 'EGroupware\\'.ucfirst($app).'\\Merge'] as $class)
+		{
+			if (class_exists($class) && is_subclass_of($class, Api\Storage\Merge::class))
+			{
+				return $class;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Applications whose record placeholders a prompt can use, with the link to their list
+	 *
+	 * The record placeholders are those of document merge (see Bo::mergeRecord()), the list is the merge
+	 * class' show_replacements(), shown by placeholders() - many merge classes don't allow it as menuaction.
+	 *
+	 * @param string[]|string|null $apps applications of the prompt, none: all the user may run
+	 * @return array[] with values for keys "app", "label" and "url", sorted by label
+	 */
+	protected static function placeholderPages($apps=null) : array
+	{
+		$apps = array_filter(is_array($apps) ? $apps : explode(',', (string)$apps));
+		if (!$apps)
+		{
+			$apps = array_keys($GLOBALS['egw_info']['user']['apps'] ?? []);
+		}
+		$pages = [];
+		foreach ($apps as $app)
+		{
+			if (is_string($app) && preg_match('/^[a-z0-9_-]+$/i', $app) && !empty($GLOBALS['egw_info']['user']['apps'][$app]) &&
+				self::mergeClass($app))
+			{
+				$pages[] = [
+					'app'   => $app,
+					'label' => preg_replace('/\s+/', ' ', trim($GLOBALS['egw_info']['apps'][$app]['title'] ?? lang($app))),
+					'url'   => Api\Egw::link('/index.php', ['menuaction' => self::APP.'.'.self::class.'.placeholders', 'placeholder_app' => $app]),
+				];
+			}
+		}
+		usort($pages, static fn($a, $b) => strcasecmp($a['label'], $b['label']));
+
+		return $pages;
+	}
+
+	/**
+	 * Placeholders popup of the prompt editor: what a prompt text can use (a window, not a dialog, so it
+	 * can stay open beside the editor)
+	 *
+	 * With placeholder_app: the record placeholders of that application, its merge class' show_replacements().
+	 * Without: the reference - the <content> tags, the placeholders Prompts::prompts() fills, {$lang} of the
+	 * translation prompt, and a link per application (of the prompt: apps, or all) to its record placeholders.
+	 */
+	public function placeholders()
+	{
+		if (isset($_GET['placeholder_app']))
+		{
+			$app = (string)$_GET['placeholder_app'];
+			if (!preg_match('/^[a-z0-9_-]+$/i', $app) || empty($GLOBALS['egw_info']['user']['apps'][$app]) ||
+				!($class = self::mergeClass($app)))
+			{
+				Api\Framework::window_close(lang('Permission denied!'));
+			}
+			Api\Translation::add_app($app);
+			(new $class())->show_replacements();
+			return;
+		}
+		$h = static fn($text) => htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+		$section = static function(string $title, array $rows) use ($h) : string
+		{
+			$html = '<h3>'.$h(lang($title))."</h3>\n<table class=\"egwGridView_grid\" style=\"width: 100%\">\n";
+			foreach ($rows as [$code, $text])
+			{
+				$html .= '<tr><td style="vertical-align: top; white-space: nowrap; padding-right: 1em; font-family: monospace">'.
+					$h($code).'</td><td>'.(is_array($text) ? $text[0] : $h(lang($text)))."</td></tr>\n";
+			}
+			return $html."</table>\n";
+		};
+		$links = '';
+		foreach (self::placeholderPages($_GET['apps'] ?? null) as $page)
+		{
+			$links .= '<li><a href="'.$h($page['url']).'" target="aitools_placeholders_'.$h($page['app']).'">'.$h($page['label'])."</a></li>\n";
+		}
+		$GLOBALS['egw_info']['flags']['app_header'] = lang('Placeholders');
+		echo $GLOBALS['egw']->framework->header();
+		echo '<div style="padding: 0 1em 1em; overflow: auto; height: 100%; box-sizing: border-box">'."\n";
+		echo $section('The text to work on', [
+			['<content>…</content>', 'The text of the field, or its selected part, is added after the prompt inside these tags - refer to it as "the text inside the <content> tags".'],
+		]);
+		echo $section('Replaced in every prompt', [
+			['{{username}}', 'Login name of the user'],
+			['{{userfullname}}', 'Full name of the user'],
+			['{{useremail}}', 'Email address of the user'],
+			['{{userdate}} {{usertime}}', 'Current date and time of the user'],
+			['{{usertimezone}}', 'Timezone of the user'],
+			['{{systemtime}}', 'Current time in UTC, ISO 8601'],
+			['{{lang}} {{language}}', 'Language of the user: code and name'],
+		]);
+		echo $section('Translation prompt only', [
+			['{$lang}', 'The target language, in the prompt "Translate" or "Custom translation prompt"'],
+		]);
+		echo $section('Fields of the entry the text belongs to', [
+			['{{id}} {{subject}} …', [$h(lang('The placeholders of the application, as for documents, written {{name}} or $$name$$. Not replaced for a new entry, or without the right to read it.')).
+				'<ul>'.($links ?: '<li>'.$h(lang('No application with placeholders')).'</li>').'</ul>']],
+		]);
+		echo $section('Added automatically', [
+			['System prompt', 'Rules for every request, and the user context (name, language, timezone) - see the system prompts in the list'],
+			['Tools', 'The tools chosen in the tab "Tools" are offered to the AI'],
+		]);
+		echo "</div>\n";
+		echo $GLOBALS['egw']->framework->footer();
 	}
 
 	/**

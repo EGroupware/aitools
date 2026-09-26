@@ -97,6 +97,26 @@ export class AIToolsApp extends EgwApp
 	}
 
 	/**
+	 * Placeholders button of the prompt editor: a popup window with what a prompt text can use
+	 *
+	 * A window, not an Et2Dialog: that one always blocks the editor behind its overlay. Lists the
+	 * record placeholders for the applications of the prompt, see Admin::placeholders().
+	 *
+	 * @param _ev
+	 * @param _widget
+	 */
+	showPlaceholders(_ev? : Event, _widget? : Et2Button)
+	{
+		if (!this.et2) this.et2 = <Et2Template><unknown>_widget.getRoot();
+		const apps = (<any>this.et2.getInputWidgetById('apps'))?.getValue() ?? [];
+
+		this.egw.openPopup(this.egw.link('/index.php', {
+			menuaction: 'aitools.EGroupware\\AiTools\\Admin.placeholders',
+			apps: (Array.isArray(apps) ? apps : [apps]).join(',')
+		}), 720, 640, 'aitools_placeholders', 'aitools');
+	}
+
+	/**
 	 * Test connection button of the config: test the current form values and show the result in a popup
 	 *
 	 * The values need not be saved; an empty API key uses the stored one server-side.
