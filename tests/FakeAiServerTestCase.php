@@ -148,7 +148,7 @@ EOT;
 
 	protected function tearDown() : void
 	{
-		foreach (['ai_model', 'ai_api_url', 'ai_api_key', 'temperature', 'max_tokens'] as $key)
+		foreach (['ai_model', 'ai_api_url', 'ai_api_key', 'temperature', 'max_tokens', 'reasoning'] as $key)
 		{
 			Api\Config::save_value($key, $this->orig_config[$key] ?? null, Bo::APP);
 		}

@@ -728,7 +728,9 @@ class Bo
 		$data = array_filter($tools+[
 			'model' => $config['model'],
 			'messages' => $messages,
-			'reasoning' => $config['reasoning'],
+			// /chat/completions takes the effort as flat "reasoning_effort" - "reasoning" is an object
+			// ({"effort": ...}) there, Ollama rejects a string with "cannot unmarshal string"
+			'reasoning_effort' => $config['reasoning'],
 			// Translation is deterministic - use low temperature for faster, more consistent results
 			'temperature' => (float)($config['temperature'] ?? ($is_translation ? 0.1 : 0.7)),
 			// Translations typically match input length - reduce tokens for faster processing
@@ -795,7 +797,7 @@ class Bo
 				$data = array_filter($tools+[
 					'model' => $config['model'],
 					'messages' => $messages,
-					'reasoning' => $config['reasoning'],
+					'reasoning_effort' => $config['reasoning'],
 					'temperature' => (float)($config['temperature'] ?? ($is_translation ? 0.1 : 0.7)),
 					'max_tokens' => (int)($config['max_tokens'] ?? ($is_translation ? 4000 : 10000)),
 				]);
