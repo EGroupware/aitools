@@ -68,6 +68,31 @@ class ChatCompletionsRequestTypesTest extends FakeAiServerTestCase
 	}
 
 	/**
+	 * The configured "Reasoning effort" is a plain string ("low", "high", ...). On /chat/completions
+	 * the flat field for that is "reasoning_effort" - "reasoning" is an object ({"effort": "low"})
+	 * there, and Ollama rejects a string with "json: cannot unmarshal string into Go struct field
+	 * ChatCompletionRequest.reasoning of type openai.Reasoning". Covers both rounds of the tool loop.
+	 */
+	public function testReasoningEffortIsSentAsReasoningEffortNotReasoning()
+	{
+		Api\Config::save_value('reasoning', 'low', Bo::APP);
+
+		(new Bo())->process_predefined_prompt(
+			['name' => 'test_prompt', 'text' => 'Search something.', 'tools' => ['searchContacts']],
+			'irrelevant content'
+		);
+
+		$requests = $this->loggedRequests();
+		$this->assertGreaterThanOrEqual(2, count($requests),
+			'expected an initial call plus a follow-up call after the tool result');
+		foreach (array_slice($requests, 0, 2) as $n => $request)
+		{
+			$this->assertSame('low', $request['reasoning_effort'] ?? null, "call #$n must send reasoning_effort");
+			$this->assertArrayNotHasKey('reasoning', $request, "call #$n must not send a string 'reasoning'");
+		}
+	}
+
+	/**
 	 * system_prompt/system_prompt_tools must never contain any per-user/per-request value - that's
 	 * the actual root cause of the reported caching problem (system_prompt USED to embed
 	 * {{userfullname}}/{{useremail}}/{{username}}/{{userdate}}/{{usertime}}/{{systemtime}}, which

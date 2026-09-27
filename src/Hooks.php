@@ -104,7 +104,8 @@ class Hooks
 					'google:gemini-1.5-flash' => 'Google Gemini 1.5 Flash',
 					'azure:gpt-4o' => 'Azure OpenAI GPT-4o',
 					'azure:gpt-4o-mini' => 'Azure OpenAI GPT-4o Mini',*/
-					'custom' => 'Custom',
+					// not just "Custom": admin's own translation of that wins on the config page
+					'custom' => 'Other provider',
 				],
 			],
 		];

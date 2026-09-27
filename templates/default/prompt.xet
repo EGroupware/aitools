@@ -87,7 +87,7 @@
 					<et2-select-account  id="account_id" multiple="true" emptyLabel="All"></et2-select-account>
 				</row>
 				<row>
-					<et2-tabbox  id="tabs" class="et2_nowrap" width="100%" span="all" tabHeight="240">
+					<et2-tabbox  id="tabs" class="et2_nowrap" width="100%" span="all" tabHeight="390">
 						<tabs>
 							<tab id="prompt" label="Prompt"/>
 							<tab id="overrides" label="Overrides"/>
@@ -116,6 +116,7 @@
 						<et2-button  accesskey="s" label="Save" id="button[save]" hideOnReadonly="true"></et2-button>
 						<et2-button  label="Apply" id="button[apply]" hideOnReadonly="true"></et2-button>
 						<et2-button  label="Cancel" id="button[cancel]" onclick="window.close(); return false;" hideOnReadonly="true"></et2-button>
+						<et2-button  label="Placeholders" id="placeholders" image="info-circle" noSubmit="true" statustext="Placeholders a prompt can use" onclick="app.aitools.showPlaceholders"></et2-button>
 						<et2-button  align="right" label="Delete" id="button[delete]" hideOnReadonly="true" onclick="Et2Dialog.confirm(widget,'Do you really want to delete this prompt?','Delete')"></et2-button>
 					</et2-hbox>
 				</row>

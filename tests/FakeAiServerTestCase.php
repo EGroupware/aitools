@@ -143,12 +143,15 @@ EOT;
 		Api\Config::save_value('ai_model', 'openai:test-model', Bo::APP);
 		Api\Config::save_value('ai_api_url', self::$server_url, Bo::APP);
 		Api\Config::save_value('ai_api_key', 'test-key', Bo::APP);
+		// the "openai:" prefix would pick the OpenAI dialect, these tests are about the generic body
+		// (the dialects are covered by ChatCompletionsDialectTest)
+		Api\Config::save_value('api_dialect', 'generic', Bo::APP);
 		@unlink(self::$fixture_dir.'/requests.log');
 	}
 
 	protected function tearDown() : void
 	{
-		foreach (['ai_model', 'ai_api_url', 'ai_api_key', 'temperature', 'max_tokens'] as $key)
+		foreach (['ai_model', 'ai_api_url', 'ai_api_key', 'temperature', 'max_tokens', 'reasoning', 'api_dialect'] as $key)
 		{
 			Api\Config::save_value($key, $this->orig_config[$key] ?? null, Bo::APP);
 		}
