@@ -44,12 +44,32 @@ class Admin
 	}
 
 	/**
+	 * Prompts are edited by admins only
+	 *
+	 * Only admins get the "Customize prompts" link, but index() and edit() are public functions,
+	 * reachable by every user with run rights on aitools - which is every user of the AI
+	 * assistant. And a prompt runs with the rights of the user running it: with the fields of
+	 * that user's record ({{placeholders}}) and with the tools it enables, so whoever edits a
+	 * prompt acts through everyone using it. placeholders() stays open, it only lists names.
+	 *
+	 * @throws Api\Exception\NoPermission\Admin
+	 */
+	protected static function checkAdmin() : void
+	{
+		if (empty($GLOBALS['egw_info']['user']['apps']['admin']))
+		{
+			throw new Api\Exception\NoPermission\Admin();
+		}
+	}
+
+	/**
 	 * Edit a host
 	 *
 	 * @param ?array $content =null
 	 */
 	public function edit(?array $content=null)
 	{
+		self::checkAdmin();
 		if (!is_array($content))
 		{
 			if (!empty($_GET['prompt_id']))
@@ -299,6 +319,7 @@ class Admin
 	 */
 	public function get_rows($query, ?array &$rows=null, ?array &$readonlys=null)
 	{
+		self::checkAdmin();
 		if (!empty($query['order']) && $query['order'] !== 'account_id' && !str_starts_with($query['order'], 'prompt_'))
 		{
 			$query['order'] = 'prompt_'.$query['order'];
@@ -330,6 +351,7 @@ class Admin
 	 */
 	public function index(?array $content=null)
 	{
+		self::checkAdmin();
 		if (!is_array($content) || empty($content['nm']))
 		{
 			$content = [
