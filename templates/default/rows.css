@@ -1,0 +1,14 @@
+/**
+ * EGroupware AI Tools - styles for the prompt list rows
+ *
+ * Loaded into the list's row shadow DOM by <et2-styles src="rows.css"> in prompts.xet,
+ * app.css does not reach the rows.
+ */
+.promptDisabled {
+	color: gray;
+}
+.promptShortened, .promptShortened > span {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}

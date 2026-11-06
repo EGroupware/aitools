@@ -137,6 +137,13 @@ class Admin
 		{
 			$query['order'] = 'prompt_'.$query['order'];
 		}
+		// Remember what the list is showing, so action() can expand a "select all" to the rows the
+		// user can actually see - it is handed only the ids the client sent
+		if (empty($query['csv_export']))
+		{
+			Api\Cache::setSession(self::APP, 'index',
+				array_intersect_key($query, array_flip(['search', 'col_filter', 'order', 'sort'])));
+		}
 		$total = $this->prompts->get_rows($query, $rows, $readonlys);
 		foreach($rows as &$row)
 		{
@@ -216,8 +223,49 @@ class Admin
 				'caption' => 'Delete',
 				'confirm' => 'Delete this prompt(s)',
 				'group' => $group=5,
+				'onExecute' => 'javaScript:app.aitools.ajax_action',
+				// the class is namespaced, so the "<app>.<app>_ui.ajax_action" convention the
+				// client falls back to would not find it
+				'data' => ['menuaction' => self::APP.'.'.self::class.'.ajax_action'],
 			],
 		];
+	}
+
+	/**
+	 * Run the prompt list's context-menu actions over ajax, so the list keeps its scroll position
+	 * and selection instead of being rebuilt
+	 *
+	 * @param string $exec_id eTemplate request this came from - the only thing saying the caller
+	 *	had one of our pages open, see Nextmatch::validateExecId()
+	 * @param string $action 'delete'
+	 * @param string[] $selected prompt ids
+	 * @param bool $all_selected expanded by action() from the filters the list last ran
+	 */
+	public function ajax_action($exec_id, $action, array $selected, $all_selected = false)
+	{
+		if (!Api\Etemplate\Widget\Nextmatch::validateExecId($exec_id))
+		{
+			return;
+		}
+		$failed = false;
+		try
+		{
+			$msg = $this->action($action, $selected, $all_selected);
+		}
+		catch (\Exception $e)
+		{
+			$msg = $e->getMessage();
+			$failed = true;
+		}
+		// Naming the app in the 2nd argument makes egw.refresh() update the list itself: the
+		// "message only, a push will carry the change" sentinel needs something to send that
+		// push, and aitools never calls Link::notify_update().  Only one id fits in the 3rd
+		// argument, so the single-row update is only on when exactly one row changed; for
+		// anything more it gets no id at all, which reloads the list.
+		$single = !$all_selected && count($selected) === 1;
+		Api\Json\Response::get()->call('egw.refresh', $msg, self::APP,
+			$single ? $selected[0] : null, $single ? 'delete' : null, self::APP, null, null,
+			$failed ? 'error' : 'success');
 	}
 
 	/**
@@ -233,7 +281,19 @@ class Admin
 	{
 		if ($select_all)
 		{
-			$selected = array_column($this->prompts->search(null, false, '', '', '', false, 'AND', false), 'id');
+			// the filters the list last ran, not every prompt in the table: without them a search
+			// that shows three rows would delete all of them plus everything it filtered out
+			$query = Api\Cache::getSession(self::APP, 'index');
+			if (!is_array($query))
+			{
+				throw new Api\Exception\AssertionFailed(
+					lang('Could not determine the current selection, please try again.'));
+			}
+			@set_time_limit(0);
+			$query['num_rows'] = -1;
+			$rows = $readonlys = [];
+			$this->get_rows($query, $rows, $readonlys);
+			$selected = array_column($rows, 'id');
 		}
 		$selected = (array)$selected;
 
