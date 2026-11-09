@@ -296,7 +296,7 @@ class Prompts extends Api\Storage\Json
 		if (isset($filter['disabled']) && $filter['disabled'] === '0')
 		{
 			unset($filter['disabled']);
-			$filter[] = '(prompt_disabled IS NULL OR NOT prompt_disabled)';
+			$filter[] = Api\Db\SqlFragment::raw('(prompt_disabled IS NULL OR NOT prompt_disabled)');
 		}
 		return parent::search($criteria, $only_keys, $order_by, $extra_cols, $wildcard, $empty, $op, $start, $filter, $join, $need_full_no_count);
 	}
