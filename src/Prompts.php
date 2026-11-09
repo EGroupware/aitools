@@ -57,7 +57,7 @@ class Prompts extends Api\Storage\Json
 			$instance = self::instance();
 			$prompts = [];
 			foreach ($instance->search(null, false, 'prompt_order,prompt_id', '', '', '', '', false,
-				['(prompt_disabled IS NULL OR NOT prompt_disabled)']) as $prompt)
+				[Api\Db\SqlFragment::raw('(prompt_disabled IS NULL OR NOT prompt_disabled)')]) as $prompt)
 			{
 				$prompts[$prompt['name']] = $prompt;
 			}
