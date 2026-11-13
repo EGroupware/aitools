@@ -204,7 +204,9 @@ class Admin
 	 */
 	protected function get_actions()
 	{
-		return [
+		// with "select all" action() expands the selection itself from the list's query, so the
+		// client does not have to fetch the ids of all rows first
+		return Api\Etemplate\Widget\Nextmatch::flagServerSelectAll([
 			'edit' => [
 				'caption' => 'Open',
 				'default' => true,
@@ -228,7 +230,7 @@ class Admin
 				// client falls back to would not find it
 				'data' => ['menuaction' => self::APP.'.'.self::class.'.ajax_action'],
 			],
-		];
+		], ['javaScript:app.aitools.ajax_action']);
 	}
 
 	/**
@@ -287,13 +289,15 @@ class Admin
 			if (!is_array($query))
 			{
 				throw new Api\Exception\AssertionFailed(
-					lang('Could not determine the current selection, please try again.'));
+					lang('Could not determine the current selection. Nothing was changed, please reload the list and try again.'));
 			}
 			@set_time_limit(0);
 			$query['num_rows'] = -1;
 			$rows = $readonlys = [];
 			$this->get_rows($query, $rows, $readonlys);
 			$selected = array_column($rows, 'id');
+			// refuse to act on a different number of entries than the list showed the user
+			Api\Etemplate\Widget\Nextmatch::checkSelectAllCount($select_all, count($selected));
 		}
 		$selected = (array)$selected;
 
